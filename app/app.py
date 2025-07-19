@@ -4,7 +4,6 @@ import streamlit as st
 from streamlit_chat_widget import chat_input_widget
 from openai import OpenAI
 from streamlit_float import float_init
-from dotenv import load_dotenv
 
 
 #load_dotenv()
