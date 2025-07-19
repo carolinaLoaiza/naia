@@ -7,7 +7,7 @@ from streamlit_float import float_init
 from dotenv import load_dotenv
 
 
-load_dotenv()
+#load_dotenv()
 float_init()
 footer_container = st.container()
 
