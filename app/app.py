@@ -1,53 +1,85 @@
+import base64
+import os
 import streamlit as st
-import streamlit.components.v1 as components
+from streamlit_chat_widget import chat_input_widget
+from openai import OpenAI
+from streamlit_float import float_init
+from dotenv import load_dotenv
 
-st.set_page_config(page_title="🗣️ Voz a texto y texto a voz", layout="centered")
 
-st.title("🎤 Voz a texto y texto a voz (con el navegador)")
+load_dotenv()
+float_init()
+footer_container = st.container()
 
-st.markdown("Haz clic en el botón para hablar. Se transcribirá y se reproducirá automáticamente.")
 
-components.html("""
-    <div>
-        <button onclick="startRecognition()" style="font-size:20px;padding:10px 20px;margin-top:10px;">🎙️ Hablar</button>
-        <p id="output" style="font-size:18px; margin-top: 20px;"></p>
-    </div>
+openai_api_key = st.secrets.get("OPENAI_API_KEY", os.getenv("OPENAI_API_KEY"))
+if not openai_api_key:
+    st.error("⚠️ OpenAI API key no encontrada. Defínela en st.secrets o como variable de entorno.")
+    st.stop()
+    
+client = OpenAI(api_key=openai_api_key)
 
-    <script>
-        function startRecognition() {
-            const output = document.getElementById("output");
-            output.innerHTML = "🎧 Escuchando...";
 
-            var SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-            if (!SpeechRecognition) {
-                output.innerHTML = "❌ Tu navegador no soporta reconocimiento de voz.";
-                return;
-            }
+# Estado del chat
+if "chat_history" not in st.session_state:
+    st.session_state.chat_history = [
+        "Hello! I am your Doctor AI Assistant. How can I help you?"
+    ]
 
-            var recognition = new SpeechRecognition();
-            recognition.lang = "es-ES";
-            recognition.interimResults = false;
-            recognition.maxAlternatives = 1;
+# Contenedor para el historial
+chat_box = st.container()
 
-            recognition.start();
+# Procesar input
+response = chat_input_widget()
 
-            recognition.onresult = function(event) {
-                var transcript = event.results[0][0].transcript;
-                output.innerHTML = "📝 <strong>Transcripción:</strong> " + transcript;
+if response:
+    if "text" in response:
+        user_text = response["text"]
+        st.session_state.chat_history.append(f"You: {user_text}")
 
-                // Texto a voz automático
-                var utterance = new SpeechSynthesisUtterance(transcript);
-                utterance.lang = "es-ES";
-                window.speechSynthesis.speak(utterance);
-            };
+    elif "audioFile" in response:
+        try:
+            audio_bytes = bytes(response["audioFile"])
+            with open("temp_audio.wav", "wb") as f:
+                f.write(audio_bytes)
 
-            recognition.onerror = function(event) {
-                output.innerHTML = "❌ Error: " + event.error;
-            };
+            with open("temp_audio.wav", "rb") as audio_file:
+                transcript = client.audio.transcriptions.create(
+                    file=audio_file,
+                    model="whisper-1"
+                )
 
-            recognition.onspeechend = function() {
-                recognition.stop();
-            };
-        }
-    </script>
-""", height=300)
+            if transcript and hasattr(transcript, "text"):
+                user_text = transcript.text
+                st.session_state.chat_history.append(f"You (voice): {user_text}")
+
+                # Simular respuesta
+                assistant_reply = "Claro, entiendo tu pregunta."
+                st.session_state.chat_history.append(f"AI: {assistant_reply}")
+
+                # Generar voz para la respuesta
+                tts_response = client.audio.speech.create(
+                    model="tts-1",
+                    voice="nova",
+                    input=assistant_reply
+                )
+                tts_response.write_to_file("assistant_reply.mp3")
+
+                # Leer y reproducir sin mostrar reproductor
+                with open("assistant_reply.mp3", "rb") as f:
+                    audio_bytes = f.read()
+                    b64 = base64.b64encode(audio_bytes).decode()
+                    st.markdown(f"""
+                    <audio autoplay>
+                        <source src="data:audio/mp3;base64,{b64}" type="audio/mp3">
+                    </audio>
+                    """, unsafe_allow_html=True)
+            else:
+                st.warning("No se pudo transcribir el audio.")
+        except Exception as e:
+            st.error(f"Error al transcribir: {e}")
+
+# Mostrar historial *después* de procesar input
+with chat_box:
+    for message in st.session_state.chat_history:
+        st.write(message)
