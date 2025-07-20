@@ -1,0 +1,51 @@
+credentials:
+  usernames:
+    user1:
+      email: user1@example.com
+      name: Mick Jagger 
+      password: "123"
+    user2:
+      email: user2@example.com
+      name: Freddie Mercury 
+      password: "123"
+    user3:
+      email: user3@example.com
+      name: Robert Plant
+      password: "123"
+    user4:
+      email: user4@example.com
+      name: Roger Waters 
+      password: "123"
+    user5:
+      email: user5@example.com
+      name: David Bowie
+      password: "123"
+    user6:
+      email: user6@example.com
+      name: Dave Grohl
+      password: "123"  
+    user7:
+      email: user7@example.com
+      name: Chris Martin 
+      password: "123"
+    user8:
+      email: user8@example.com
+      name: Dan Reynolds
+      password: "123"
+    user9:
+      email: user9@example.com
+      name: Brandon Flowers
+      password: "123"  
+    user10:
+      email: user10@example.com
+      name: Pierre Bouvier
+      password: "123"  
+cookie:
+  expiry_days: 1
+  key: my_super_secret_key_123
+  name: user_session
+
+preauthorized:
+  emails:
+    - user1@example.com
+    - user2@example.com

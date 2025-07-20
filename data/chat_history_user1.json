@@ -14,5 +14,45 @@
   {
     "role": "assistant",
     "content": "You're welcome. I'm here to help with any questions or concerns you may have about your post-surgery recovery. What do you need assistance with today?"
+  },
+  {
+    "role": "user",
+    "content": "hola, responde si o no si hoy es jueves"
+  },
+  {
+    "role": "assistant",
+    "content": "No"
+  },
+  {
+    "role": "user",
+    "content": "hola, responde si eres asistente"
+  },
+  {
+    "role": "assistant",
+    "content": "Sí"
+  },
+  {
+    "role": "user",
+    "content": "hola repite la respuesta anterior"
+  },
+  {
+    "role": "assistant",
+    "content": "Sí"
+  },
+  {
+    "role": "user",
+    "content": "hola"
+  },
+  {
+    "role": "assistant",
+    "content": "¿En qué puedo ayudarte?"
+  },
+  {
+    "role": "user",
+    "content": "responde  si o no si es lunes"
+  },
+  {
+    "role": "assistant",
+    "content": "No"
   }
 ]

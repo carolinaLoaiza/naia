@@ -56,7 +56,7 @@ if response:
     user_text = None
     is_voice_input = False
 
-    # 1. TEXTO
+    # 1. TEXT
     if "text" in response:
         user_text = response["text"]
         #st.session_state.chat_history.append(f"You: {user_text}")
