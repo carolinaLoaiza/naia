@@ -7,7 +7,7 @@ from openai import OpenAI
 from streamlit_extras.bottom_container import bottom 
 import os
 from langchain.schema import HumanMessage, AIMessage, SystemMessage
-
+import streamlit.components.v1 as components
 
 from GroqChat import GroqChat
 from ChatHistoryManager import ChatHistoryManager
@@ -103,6 +103,7 @@ if response:
         assistant_reply = groqChat.get_response(messages)
         #st.session_state.chat_history.append(f"AI: {assistant_reply}")
         st.session_state.chat_history.append(AIMessage(content=assistant_reply))
+        chatHistoryManager.save(st.session_state.chat_history)
 
         # 4. Si el input fue por voz → también responder con voz
         if is_voice_input:
@@ -113,15 +114,10 @@ if response:
                     input=assistant_reply
                 )
                 tts_response.write_to_file("assistant_reply.mp3")
-
-                import streamlit.components.v1 as components
-
                 with open("assistant_reply.mp3", "rb") as f:
                     audio_bytes = f.read()
                     b64 = base64.b64encode(audio_bytes).decode()
-
                     rand_id = random.randint(0, 999999)
-
                     components.html(f"""
                         <html>
                         <body>

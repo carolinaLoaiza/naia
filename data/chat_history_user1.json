@@ -1,0 +1,18 @@
+[
+  {
+    "role": "user",
+    "content": "Answer me with a yes or no if today is Sunday."
+  },
+  {
+    "role": "assistant",
+    "content": "No"
+  },
+  {
+    "role": "user",
+    "content": "Thank you to our AIA assistant."
+  },
+  {
+    "role": "assistant",
+    "content": "You're welcome. I'm here to help with any questions or concerns you may have about your post-surgery recovery. What do you need assistance with today?"
+  }
+]

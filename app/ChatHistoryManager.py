@@ -20,6 +20,7 @@ class ChatHistoryManager:
             return [SystemMessage(content="You are a helpful assistant for post-surgery recovery.")]
 
     def save(self, messages):
+        os.makedirs(os.path.dirname(self.filepath), exist_ok=True)
         serializable = []
         for m in messages:
             role = (
