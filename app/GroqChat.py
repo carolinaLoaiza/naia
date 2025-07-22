@@ -15,7 +15,7 @@ class GroqChat:
         self.llm = ChatGroq(groq_api_key=self.api_key, temperature=0.5, model="llama-3.1-8b-instant")
          # Modelo para todo (puedes cambiarlo luego si quieres separar)
         self.chat_llm = ChatGroq(groq_api_key=self.api_key
-                                 , temperature=0.7
+                                 , temperature=0.4
                                  , model="llama-3.1-8b-instant")
         self.classifier_llm = ChatGroq(groq_api_key=self.api_key
                                        , temperature=0.0
