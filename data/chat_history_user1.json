@@ -1,58 +1,18 @@
 [
   {
     "role": "user",
-    "content": "Answer me with a yes or no if today is Sunday."
+    "content": "oozing or pus from your wound"
   },
   {
     "role": "assistant",
-    "content": "No"
+    "content": "🚨 Warning: Your symptoms seem severe. Please call emergency services or go to the hospital immediately."
   },
   {
     "role": "user",
-    "content": "Thank you to our AIA assistant."
+    "content": "do you know if I have to take medicin today? "
   },
   {
     "role": "assistant",
-    "content": "You're welcome. I'm here to help with any questions or concerns you may have about your post-surgery recovery. What do you need assistance with today?"
-  },
-  {
-    "role": "user",
-    "content": "hola, responde si o no si hoy es jueves"
-  },
-  {
-    "role": "assistant",
-    "content": "No"
-  },
-  {
-    "role": "user",
-    "content": "hola, responde si eres asistente"
-  },
-  {
-    "role": "assistant",
-    "content": "Sí"
-  },
-  {
-    "role": "user",
-    "content": "hola repite la respuesta anterior"
-  },
-  {
-    "role": "assistant",
-    "content": "Sí"
-  },
-  {
-    "role": "user",
-    "content": "hola"
-  },
-  {
-    "role": "assistant",
-    "content": "¿En qué puedo ayudarte?"
-  },
-  {
-    "role": "user",
-    "content": "responde  si o no si es lunes"
-  },
-  {
-    "role": "assistant",
-    "content": "No"
+    "content": "🔔 Tienes los siguientes medicamentos pendientes:\n- 💊 ibuprofen (400mg) a las 08:00"
   }
 ]

@@ -10,13 +10,12 @@ if "page_config_set" not in st.session_state:
     st.session_state.page_config_set = True
 st.title(":orange[NAIA - FAQ]")
 
+# Autenticathion
+if not st.session_state.get("authentication_status"):
+    st.warning("Please log in first.")
+    st.stop()
 
-#st.set_page_config(
- #   page_title="NAIA - FAQ",
-    #page_icon="https://api.dicebear.com/5.x/bottts-neutral/svg?seed=gptLAb"#,
-    #menu_items={"About": "GPT Lab is a user-friendly app that allows anyone to interact with and create their own AI Assistants powered by OpenAI's GPT language model. Our goal is to make AI accessible and easy to use for everyone, so you can focus on designing your Assistant without worrying about the underlying infrastructure.", "Get help": None, "Report a Bug": None}
-#)
-
+username = st.session_state["username"]
 
 st.markdown(
     "<style>#MainMenu{visibility:hidden;}</style>",

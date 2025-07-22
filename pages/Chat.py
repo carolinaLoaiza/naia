@@ -10,6 +10,15 @@ import streamlit.components.v1 as components
 
 from app.GroqChat import GroqChat
 from app.ChatHistoryManager import ChatHistoryManager
+from graph.LangGraph import build_graph
+
+# Autenticathion
+if not st.session_state.get("authentication_status"):
+    st.warning("Please log in first.")
+    st.stop()
+
+username = st.session_state["username"]
+
 
 #LLMs API Keys
 openai_api_key = st.secrets.get("OPENAI_API_KEY")
@@ -39,13 +48,12 @@ st.subheader("Your post-surgery assistant")
 
 #Initialize variables
 groqChat = GroqChat()
-chatHistoryManager = ChatHistoryManager(user_id="user1")  # Use a default user ID for simplicity
-
+chatHistoryManager = ChatHistoryManager(user_id=username)  # Use a default user ID for simplicity
 # Estado del chat
 if "chat_history" not in st.session_state:
     st.session_state.chat_history = chatHistoryManager.load()
-    #[        "Hello! I am your Doctor AI Assistant. How can I help you?"]
-
+if "agent_graph" not in st.session_state:
+    st.session_state.agent_graph = build_graph()
 
 # Container for the chat history
 chat_box = st.container()
@@ -90,7 +98,11 @@ if response:
             elif isinstance(msg, AIMessage):
                 messages.append(groqChat.ai_message(msg.content))
 
-        assistant_reply = groqChat.get_response(messages)
+        #assistant_reply = groqChat.get_response(messages)
+        agent_state = {"input": user_text, "output": ""}
+        final_state = st.session_state.agent_graph.invoke(agent_state)
+        assistant_reply = final_state["output"]
+
         st.session_state.chat_history.append(AIMessage(content=assistant_reply))
         chatHistoryManager.save(st.session_state.chat_history)
 
