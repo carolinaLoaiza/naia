@@ -6,13 +6,5 @@
   {
     "role": "assistant",
     "content": "🚨 Warning: Your symptoms seem severe. Please call emergency services or go to the hospital immediately."
-  },
-  {
-    "role": "user",
-    "content": "do you know if I have to take medicin today? "
-  },
-  {
-    "role": "assistant",
-    "content": "🔔 Tienes los siguientes medicamentos pendientes:\n- 💊 ibuprofen (400mg) a las 08:00"
   }
 ]
