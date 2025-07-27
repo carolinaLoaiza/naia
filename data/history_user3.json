@@ -1,0 +1,48 @@
+
+{
+    "patient_id": "67890",
+    "name": "Liam Walker",
+    "age": 42,
+    "gender": "male",
+    "location": {
+        "address": "45 Greenhill Road",
+        "city": "Bristol",
+        "postcode": "BS8 2XA",
+        "region": "South West England",
+        "country": "UK"
+    },
+    "surgery": "arthroscopic knee surgery",
+    "surgery_date": "2025-07-10",
+    "medications": [
+        {"name": "naproxen", "dose": "250mg", "frequency": "2x/day", "duration": "5 days"},
+        {"name": "paracetamol", "dose": "500mg", "frequency": "as needed", "duration": "4 days"}
+    ],
+    "pre_existing_conditions": [
+        {"name": "seasonal allergies", "status": "mild"}
+    ],
+    "past_medical_history": [
+        {"condition": "tonsillitis", "year": 2005}
+    ],
+    "family_history": [
+        {"relative": "father", "condition": "high cholesterol"},
+        {"relative": "mother", "condition": "none reported"}
+    ],
+    "allergies": ["none"],
+    "immunizations": [
+        {"vaccine": "influenza", "date": "2024-11-02"},
+        {"vaccine": "COVID-19", "date": "2023-10-08"},
+        {"vaccine": "tetanus", "date": "2022-06-01"}
+    ],
+    "social_history": {
+        "smoking": "never smoked",
+        "alcohol": "occasionally",
+        "exercise": "moderate exercise 3–4 times per week"
+    },
+    "post_surgery_recommendations": "elevate knee when resting, apply cold compress twice a day, begin light physiotherapy after one week",
+    "follow_up_appointments": [
+        {"date": "2025-07-24", "department": "physiotherapy"},
+        {"date": "2025-08-07", "department": "orthopedics"}
+    ],
+    "notes": "Patient is recovering well, mobility improving daily, mild stiffness in the morning."
+}
+```
