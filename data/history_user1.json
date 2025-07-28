@@ -39,7 +39,12 @@
         "alcohol": "moderate",
         "exercise": "light walking daily"
     },
-    "post_surgery_recommendations": "avoid intense physical effort, apply ice 3 times a day, use inhaler as needed",
+    "post_surgery_recommendations": {
+         "at_home": [
+           "avoid intense physical effort, apply ice 3 times a day, use inhaler as needed"
+        ],
+        "at_hospital": []
+    },
     "follow_up_appointments": [
         {"date": "2025-01-15", "department": "orthopedics"},
         {"date": "2025-01-20", "department": "pulmonology"}
