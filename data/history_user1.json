@@ -17,6 +17,16 @@
         {"name": "acetaminophen", "dose": "500mg", "frequency": "as needed", "duration": "6 days"},
         {"name": "metformin", "dose": "850mg", "frequency": "2x/day", "duration": "5 days"}
     ],
+    "prescription": {
+      "instructions": [
+        "Ibuprofen (400mg) to be taken every 8 hours with food to manage postoperative pain and inflammation. Do not exceed 3 doses per day.",
+        "Acetaminophen (500mg) may be used as needed for nighttime pain. Do not exceed 4 grams in 24 hours.",
+        "Metformin (850mg) should be continued twice daily with meals. Regular blood glucose monitoring is advised.",
+        "Avoid any medications containing penicillin or shellfish due to documented allergies.",
+        "Use an asthma inhaler as needed in case of respiratory discomfort."
+      ],
+      "refill_policy": "Postoperative pain medications do not require refills. Metformin may be refilled monthly with clinical monitoring."
+    },
     "pre_existing_conditions": [
         {"name": "hypertension", "status": "controlled"},
         {"name": "asthma", "severity": "mild"}
