@@ -1,0 +1,63 @@
+{
+    "patient_id": "12345",
+    "name": "Mick Jagger",
+    "age": 68,
+    "gender": "male",
+    "location": {
+        "address": "12 Highbury Crescent",
+        "city": "London",
+        "postcode": "N7 7AJ",
+        "region": "Greater London",
+        "country": "UK"
+    },
+    "surgery": "knee replacement",
+    "surgery_date": "2025-07-18",
+    "medications": [
+        {"name": "ibuprofen", "dose": "400mg", "frequency": "3x/day", "duration": "7 days"},
+        {"name": "acetaminophen", "dose": "500mg", "frequency": "as needed", "duration": "6 days"},
+        {"name": "metformin", "dose": "850mg", "frequency": "2x/day", "duration": "5 days"}
+    ],
+    "prescription": {
+      "instructions": [
+        "Ibuprofen (400mg) to be taken every 8 hours with food to manage postoperative pain and inflammation. Do not exceed 3 doses per day.",
+        "Acetaminophen (500mg) may be used as needed for nighttime pain. Do not exceed 4 grams in 24 hours.",
+        "Metformin (850mg) should be continued twice daily with meals. Regular blood glucose monitoring is advised.",
+        "Avoid any medications containing penicillin or shellfish due to documented allergies.",
+        "Use an asthma inhaler as needed in case of respiratory discomfort."
+      ],
+      "refill_policy": "Postoperative pain medications do not require refills. Metformin may be refilled monthly with clinical monitoring."
+    },
+    "pre_existing_conditions": [
+        {"name": "hypertension", "status": "controlled"},
+        {"name": "asthma", "severity": "mild"}
+    ],
+    "past_medical_history": [
+        {"condition": "appendicitis", "year": 2001},
+        {"condition": "chickenpox", "year": 1965}
+    ],
+    "family_history": [
+        {"relative": "father", "condition": "type 2 diabetes"},
+        {"relative": "mother", "condition": "osteoporosis"}
+    ],
+    "allergies": ["penicillin", "shellfish"],
+    "immunizations": [
+        {"vaccine": "influenza", "date": "2024-10-01"},
+        {"vaccine": "COVID-19", "date": "2023-08-15"}
+    ],
+    "social_history": {
+        "smoking": "former smoker",
+        "alcohol": "moderate",
+        "exercise": "light walking daily"
+    },
+    "post_surgery_recommendations": {
+         "at_home": [
+           "avoid intense physical effort, apply ice 3 times a day, use inhaler as needed"
+        ],
+        "at_hospital": []
+    },
+    "follow_up_appointments": [
+        {"date": "2025-01-15", "department": "orthopedics"},
+        {"date": "2025-01-20", "department": "pulmonology"}
+    ],
+    "notes": "Patient reports mild pain at night, no signs of infection."
+}
