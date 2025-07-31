@@ -1,12 +1,23 @@
 [
   {
-    "timestamp": "2025-07-21T22:41:10.660200",
+    "timestamp": "2025-07-31T13:18:41.143781",
     "symptoms": [
-      "oozing",
-      "pus",
-      "wound"
+      {
+        "name": "pain",
+        "location": "left knee",
+        "duration_days": 1,
+        "severity": null,
+        "onset": null
+      },
+      {
+        "name": "headache",
+        "location": "head",
+        "duration_days": 1,
+        "severity": null,
+        "onset": null
+      }
     ],
-    "severity": "severe",
-    "input_text": "oozing or pus from your wound"
+    "overall_severity": "moderate",
+    "input_text": "I have pain in my left knee and headache "
   }
 ]
