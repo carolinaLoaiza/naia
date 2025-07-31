@@ -1,0 +1,139 @@
+{
+    "patient_id": "12345ME",
+    "name": "Margaret Ellis",
+    "age": 74,
+    "gender": "female",
+    "location": {
+        "address": "89 Queen Street",
+        "city": "Manchester",
+        "postcode": "M2 5HS",
+        "region": "Greater Manchester",
+        "country": "UK"
+    },
+    "surgery": "laparoscopic appendectomy",
+    "surgery_date": "2025-07-14",
+    "medications": [
+        {
+            "name": "paracetamol",
+            "dose": "500mg",
+            "frequency": "every 6 hours",
+            "duration": "5 days"
+        },
+        {
+            "name": "ibuprofen",
+            "dose": "400mg",
+            "frequency": "every 8 hours",
+            "duration": "5 days"
+        },
+        {
+            "name": "cefuroxime",
+            "dose": "500mg",
+            "frequency": "2x/day",
+            "duration": "7 days"
+        },
+        {
+            "name": "metformin",
+            "dose": "1000mg",
+            "frequency": "2x/day",
+            "duration": "ongoing"
+        },
+        {
+            "name": "lisinopril",
+            "dose": "10mg",
+            "frequency": "1x/day",
+            "duration": "ongoing"
+        }
+    ],
+    "prescription": {
+        "instructions": [
+            "Paracetamol and ibuprofen to be alternated for pain relief; do not exceed 4 doses of either per day.",
+            "Cefuroxime to be taken with food to prevent stomach upset; complete the full 7-day course.",
+            "Continue metformin and lisinopril as previously prescribed, monitor blood sugar and blood pressure."
+        ],
+        "refill_policy": "Antibiotics and pain medications do not require refills. Chronic condition meds can be refilled monthly."
+    },
+    "pre_existing_conditions": [
+        {
+            "name": "type 2 diabetes",
+            "status": "poorly controlled"
+        },
+        {
+            "name": "chronic kidney disease",
+            "status": "stage 3"
+        },
+        {
+            "name": "hypertension",
+            "status": "moderate"
+        }
+    ],
+    "past_medical_history": [
+        {
+            "condition": "gallstones",
+            "year": 2010
+        },
+        {
+            "condition": "pneumonia",
+            "year": 2018
+        }
+    ],
+    "family_history": [
+        {
+            "relative": "father",
+            "condition": "myocardial infarction"
+        },
+        {
+            "relative": "mother",
+            "condition": "chronic kidney disease"
+        }
+    ],
+    "allergies": [
+        "codeine",
+        "latex"
+    ],
+    "immunizations": [
+        {
+            "vaccine": "influenza",
+            "date": "2024-11-01"
+        },
+        {
+            "vaccine": "COVID-19",
+            "date": "2023-09-20"
+        },
+        {
+            "vaccine": "pneumococcal",
+            "date": "2022-12-05"
+        }
+    ],
+    "social_history": {
+        "smoking": "current smoker (1 pack/day)",
+        "alcohol": "occasional",
+        "exercise": "sedentary lifestyle"
+    },
+    "post_surgery_recommendations": {
+        "at_home": [
+            "Keep surgical dressing clean and dry for at least 48 hours.",
+            "Avoid strenuous activity or lifting heavy objects for 2 weeks.",
+            "Walk short distances daily to prevent constipation and improve circulation.",
+            "Take medications exactly as prescribed; report fever or wound discharge.",
+            "Monitor blood sugar closely due to infection risk from diabetes."
+        ],
+        "at_hospital": [
+            "IV antibiotics during the first 24 hours post-op.",
+            "Vital sign and pain level monitoring every 4 hours.",
+            "Early ambulation encouraged within 6\u201312 hours post-op.",
+            "Wound inspection and dressing change before discharge.",
+            "Blood sugar checks and insulin adjustment as needed."
+        ]
+    },
+    "follow_up_appointments": [
+        {
+            "date": "2025-07-24",
+            "department": "general surgery"
+        },
+        {
+            "date": "2025-08-01",
+            "department": "nephrology"
+        }
+    ],
+    "notes": "Surgery was uncomplicated. Patient advised to report signs of infection or abdominal pain. Elevated fasting glucose post-op."
+}
