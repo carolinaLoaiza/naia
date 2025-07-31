@@ -59,7 +59,7 @@
         },
         {
             "name": "chronic kidney disease",
-            "stage": "stage 3"
+            "status": "stage 3"
         },
         {
             "name": "hypertension",
