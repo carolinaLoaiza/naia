@@ -31,24 +31,51 @@ if not symptoms:
     st.info("You haven’t reported any symptoms yet.")
     st.stop()
 
+
 # Mostrar los síntomas en tarjetas simples
-for entry in reversed(symptoms[-10:]):  # Solo los últimos 10 para no saturar
+for entry in reversed(symptoms[-10:]):  # últimos 10
     with st.container():
         col1, col2 = st.columns([3, 1])
         with col1:
-            st.markdown(f"**📝 Symptoms:** {', '.join(entry.get('symptoms', []))}")
-            st.markdown(f"**📍 Location:** {entry.get('location', 'Not specified')}")
+            symptom_list = entry.get("symptoms", [])
+            symptom_names = [s.get("name", "unknown") for s in symptom_list]
+            locations = [s.get("location", "unknown") for s in symptom_list]
+            durations = [f"{s.get('duration_days', '?')}d" for s in symptom_list]
+            severities = [s.get("severity", "unknown") or "unknown" for s in symptom_list]
+
+            st.markdown(f"**📝 Symptoms:** {', '.join(symptom_names)}")
+            st.markdown(f"**📍 Locations:** {', '.join(locations)}")
             st.markdown(f"**📆 Date:** {entry.get('timestamp', 'N/A')[:10]}")
-            st.markdown(f"**⏳ Duration:** {entry.get('duration', 'N/A')}")
-            st.markdown(f"**⚠️ Severity:** `{entry.get('severity', 'unknown')}`")
+            st.markdown(f"**⏳ Durations:** {', '.join(durations)}")
+            st.markdown(f"**⚠️ Severity:** `{entry.get('overall_severity', 'unknown')}`")
         with col2:
-            if entry.get("requires_attention"):
+            # Usa alguna lógica si quieres marcar atención
+            if entry.get("overall_severity") in ["severe", "high"]:
                 st.error("🚨 Requires Attention")
             else:
                 st.success("✅ Stable")
         st.markdown("---")
-# Convertir lista a DataFrame
+
+# Convertir a DataFrame para vista expandida
 df = pd.DataFrame(symptoms)
+# Mostrar los síntomas en tarjetas simples
+# for entry in reversed(symptoms[-10:]):  # Solo los últimos 10 para no saturar
+#     with st.container():
+#         col1, col2 = st.columns([3, 1])
+#         with col1:
+#             st.markdown(f"**📝 Symptoms:** {', '.join(entry.get('symptoms', []))}")
+#             st.markdown(f"**📍 Location:** {entry.get('location', 'Not specified')}")
+#             st.markdown(f"**📆 Date:** {entry.get('timestamp', 'N/A')[:10]}")
+#             st.markdown(f"**⏳ Duration:** {entry.get('duration', 'N/A')}")
+#             st.markdown(f"**⚠️ Severity:** `{entry.get('severity', 'unknown')}`")
+#         with col2:
+#             if entry.get("requires_attention"):
+#                 st.error("🚨 Requires Attention")
+#             else:
+#                 st.success("✅ Stable")
+#         st.markdown("---")
+# # Convertir lista a DataFrame
+# df = pd.DataFrame(symptoms)
 
 # Asegurar campo 'mensaje_original' existe
 if "input_text" not in df.columns:

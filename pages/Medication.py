@@ -136,5 +136,27 @@ else:
         st.success("Changes saved!")
 
 
+#st.subheader("Medication History (Past Dates)")
+#st.table(past_df_display)  # solo mostrar tabla simple sin edición
+
+
+
+# Ordenar por fecha y hora descendente (más recientes primero)
+past_df_display_sorted = past_df_display.sort_values(by=["date", "time"], ascending=False)
+
+# Configurar AgGrid para historial
+gb_past = GridOptionsBuilder.from_dataframe(past_df_display_sorted)
+gb_past.configure_pagination(paginationAutoPageSize=True)
+gb_past.configure_default_column(editable=False, sortable=True, filter=True, resizable=True)
+grid_options_past = gb_past.build()
+
 st.subheader("Medication History (Past Dates)")
-st.table(past_df_display)  # solo mostrar tabla simple sin edición
+AgGrid(
+    past_df_display_sorted,
+    gridOptions=grid_options_past,
+    update_mode=GridUpdateMode.NO_UPDATE,
+    allow_unsafe_jscode=True,
+    theme='balham',
+    height=300,
+    fit_columns_on_grid_load=True,
+)

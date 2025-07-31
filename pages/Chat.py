@@ -1,4 +1,5 @@
 import base64
+import datetime
 import random
 import streamlit as st
 from streamlit_chat_widget import chat_input_widget
@@ -10,7 +11,40 @@ import streamlit.components.v1 as components
 
 from app.GroqChat import GroqChat
 from app.ChatHistoryManager import ChatHistoryManager
+from app.MedicalRecordManager import MedicalRecordManager
 from graph.LangGraph import build_graph
+
+
+def play_audio(text: str, filename: str = "voice.mp3", voice: str = "shimmer"):
+    try:
+        tts_response = client.audio.speech.create(
+            model="tts-1",
+            voice=voice,
+            input=text
+        )
+        tts_response.write_to_file(filename)
+        with open(filename, "rb") as f:
+            audio_bytes = f.read()
+            b64 = base64.b64encode(audio_bytes).decode()
+            rand_id = random.randint(0, 999999)
+            components.html(f"""
+                <html>
+                <body>
+                    <audio id="audio{rand_id}" autoplay>
+                        <source src="data:audio/mp3;base64,{b64}" type="audio/mp3">
+                    </audio>
+                    <script>
+                        const audio = document.getElementById("audio{rand_id}");
+                        setTimeout(() => {{
+                            audio.play().catch(e => console.log("Playback error:", e));
+                        }}, 500);  // medio segundo de retraso para evitar corte
+                    </script>
+                </body>
+                </html>
+            """, height=0)
+    except Exception as e:
+        st.warning(f"Could not convert text to speech: {e}")
+
 
 # Autenticathion
 if not st.session_state.get("authentication_status"):
@@ -52,8 +86,40 @@ chatHistoryManager = ChatHistoryManager(user_id=username)  # Use a default user 
 # Estado del chat
 if "chat_history" not in st.session_state:
     st.session_state.chat_history = chatHistoryManager.load()
+
+medical_record_manager = MedicalRecordManager(username)
+if not medical_record_manager.record:
+    #st.warning("No medical history was found for your account. You can still chat with NAIA, but some personalized suggestions may be limited.")
+    #patient_name = username
+    st.error(
+            f"⚠️ No medical record found for user **{username}**.\n\n"
+            "NAIA needs your medical data to provide safe and accurate guidance. "
+            "Please contact support to upload your medical history to continue."
+        )
+    st.stop()
+else:
+    patient_name = medical_record_manager.record.get("name", "Patient")
+
+
+if "welcome_shown" not in st.session_state:
+    st.session_state.welcome_shown = True
+    hour = datetime.datetime.now().hour
+    if hour < 12:
+        greeting = "Good morning"
+    elif hour < 18:
+        greeting = "Good afternoon"
+    else:
+        greeting = "Good evening"
+    welcome_message = (
+        f"{greeting}, {patient_name}. How are you feeling today?\n\n"
+        "Would you like to report any symptoms or tell me how you're doing?"
+    )
+    st.session_state.chat_history.append(AIMessage(content=welcome_message))
+    play_audio(welcome_message, filename="welcome_audio.mp3")
+
 if "agent_graph" not in st.session_state:
     st.session_state.agent_graph = build_graph()
+
 
 # Container for the chat history
 chat_box = st.container()
@@ -85,9 +151,9 @@ if response:
                 is_voice_input = True  
                 st.session_state.chat_history.append(HumanMessage(content=user_text))
             else:
-                st.warning("No se pudo transcribir el audio.")
+                st.warning("It cannot be transcripted the audio.")
         except Exception as e:
-            st.error(f"Error al transcribir: {e}")
+            st.error(f"Transcription error: {e}")
     # Get response if the input is a valid text from the user
     if user_text:
         # Build a LLM history
@@ -108,36 +174,13 @@ if response:
 
         # Speak response if the input was voice 
         if is_voice_input:
-            try:
-                tts_response = client.audio.speech.create(
-                    model="tts-1",
-                    voice="shimmer",
-                    input=assistant_reply
-                )
-                tts_response.write_to_file("assistant_reply.mp3")
-                with open("assistant_reply.mp3", "rb") as f:
-                    audio_bytes = f.read()
-                    b64 = base64.b64encode(audio_bytes).decode()
-                    rand_id = random.randint(0, 999999)
-                    components.html(f"""
-                        <html>
-                        <body>
-                            <audio id="audio{rand_id}" autoplay>
-                                <source src="data:audio/mp3;base64,{b64}" type="audio/mp3">
-                            </audio>
-                            <script>
-                                const audio = document.getElementById("audio{rand_id}");
-                                audio.play().catch(e => console.log("Playback error:", e));
-                            </script>
-                        </body>
-                        </html>
-                    """, height=0)                    
-            except Exception as e:
-                st.warning(f"The response could not be converted to voice: {e}")
+            play_audio(assistant_reply, filename="assistant_reply.mp3")
 
 # Show chat history after processing the input
 with chat_box:
     for msg in st.session_state.chat_history:
+        if isinstance(msg, SystemMessage):
+            continue
         role = "user" if msg.type == "human" else "assistant"
         with st.chat_message(role):
             st.markdown(msg.content)    

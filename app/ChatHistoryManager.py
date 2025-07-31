@@ -8,16 +8,20 @@ class ChatHistoryManager:
 
     def load(self):
         if os.path.exists(self.filepath):
-            with open(self.filepath, "r", encoding="utf-8") as f:
-                raw = json.load(f)
-                return [
-                    HumanMessage(m["content"]) if m["role"] == "user"
-                    else AIMessage(m["content"]) if m["role"] == "assistant"
-                    else SystemMessage(m["content"])
-                    for m in raw
-                ]
+            try:
+                with open(self.filepath, "r", encoding="utf-8") as f:
+                    raw = json.load(f)
+                    return [
+                        HumanMessage(m["content"]) if m["role"] == "user"
+                        else AIMessage(m["content"]) if m["role"] == "assistant"
+                        else SystemMessage(m["content"])
+                        for m in raw
+                    ]
+            except (json.JSONDecodeError, IOError):
+                return [SystemMessage(content="You are a helpful assistant for post-surgery recovery.")]
         else:
             return [SystemMessage(content="You are a helpful assistant for post-surgery recovery.")]
+   
 
     def save(self, messages):
         os.makedirs(os.path.dirname(self.filepath), exist_ok=True)
@@ -32,3 +36,9 @@ class ChatHistoryManager:
 
         with open(self.filepath, "w", encoding="utf-8") as f:
             json.dump(serializable, f, ensure_ascii=False, indent=2)
+
+    def add_message(self, message):
+        """Agrega un mensaje nuevo al historial y guarda."""
+        history = self.load()
+        history.append(message)
+        self.save(history)            

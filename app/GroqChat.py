@@ -17,6 +17,7 @@ class GroqChat:
         self.chat_llm = ChatGroq(groq_api_key=self.api_key
                                  , temperature=0.4
                                  , model="llama-3.1-8b-instant")
+        
         self.classifier_llm = ChatGroq(groq_api_key=self.api_key
                                        , temperature=0.0
                                        , model="llama-3.1-8b-instant")
@@ -52,33 +53,88 @@ class GroqChat:
 
         User: "{user_input}"
         """
+        
         response = self.classifier_llm.invoke([HumanMessage(content=prompt)]).content.strip().lower()
         return response
 
     def extract_symptoms(self, user_input):
+
         prompt = f"""
-            Extract the symptoms from the following text, with metadata.
-            Return ONLY one raw JSON object, without comments, explanations, alternatives, or markdown formatting, with these fields:
-            - detected_symptoms (list of strings)
-            - severity (mild, moderate, severe — if mentioned)
-            - duration (free text, e.g., "2 days")
-            - requires_attention (true if it seems urgent)
-            - location (optional)
+            Extract symptoms and metadata from the user's message.
+            Return ONLY ONE raw JSON object. No Markdown, no comments, no extra text.
+            - overall_severity: one of "mild", "moderate", "severe", or "unknown"
+            - symptoms: array of objects with fields:
+                - name (string)
+                - location (string or null)
+                - duration_days (integer or null)
+                - severity (one of "mild","moderate","severe" or null)
+                - onset (string or null)
+
+            Respond with JSON only.
+
+            Rules:
+            - overall_severity must be exactly: mild, moderate, severe, or unknown.
+            - Provide per-symptom duration ONLY as duration_days (integer). If unknown, use null.
+            - "location" must be anatomical (e.g., "head", "left arm").
+            - If no symptoms are found, return "symptoms": [] and set "overall_severity": "unknown".
 
             User text: "{user_input}"
             """
+        
         response = self.chat_llm.invoke([HumanMessage(content=prompt)]).content.strip()
+        print("Prompt for symptom extraction:", response)
         try:
-        # Match the first JSON object using regex
-            json_match = re.search(r'\{.*?\}', response, re.DOTALL)
-            if not json_match:
+            start = response.find("{")
+            end   = response.rfind("}")
+            if start == -1 or end == -1 or end <= start:
                 raise ValueError("No JSON object found in response.")
-
-            json_text = json_match.group(0)
-            return json.loads(json_text)
-
-        except (json.JSONDecodeError, ValueError) as e:
+            json_text = response[start:end+1]
+            json_text = (
+                json_text
+                .replace("\u00A0", " ")  # NBSP
+                .replace("\u200B", "")   # zero-width space
+                .replace("“", '"').replace("”", '"').replace("’", "'")  # comillas tipográficas
+            )
+            print("JSON text extracted:", json_text)
+            data = json.loads(json_text)
+            return data
+        except Exception as e:
             print("JSON parse error:", e)
-            print("Raw model response:", response)
-            return None
+            print("Raw model response:", response)  # <-- usa 'response', no 's'
+            return {}
 
+    def extract_duration_from_text(self, text: str, symptom: str) -> int:
+        prompt = f"""
+        The following user message might mention how many days they have had this symptom: {symptom}.
+        Extract the number of days (as an integer). If not mentioned, respond with 0.
+
+        Message:
+        \"\"\"{text}\"\"\"
+
+        Answer with only a number.
+        """
+        response = self.classifier_llm.invoke([HumanMessage(content=prompt)]).content.strip()
+        try:
+            duration = int(response.strip())
+            return max(duration, 0)
+        except ValueError:
+            return 0
+
+    def classify_severity(self, symptom: str, patient_context: dict, duration_days: int) -> str:
+        prompt = f"""
+        You are a post-surgery symptom triage assistant.
+
+        Patient context:
+        - Surgery: {patient_context.get('surgery')}
+        - Duration of symptom: {duration_days} days
+        - Medications: {', '.join([med['name'] for med in patient_context.get('medications', [])])}
+        - Pre-existing conditions: {', '.join([cond['name'] for cond in patient_context.get('pre_existing_conditions', [])])}
+
+        Evaluate the severity of the symptom: "{symptom}"
+
+        Classify it as one of: "mild", "moderate", "severe".
+
+        Respond only with the severity.
+        """
+        response = self.classifier_llm.invoke([HumanMessage(content=prompt)]).content.strip()
+        return response.lower()

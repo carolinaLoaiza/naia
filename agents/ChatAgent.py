@@ -1,4 +1,9 @@
-# Puedes reemplazar esta función por tu función real de Groq si ya tienes una
-def handle_chat(state):
-    user_input = state["input"]
-    return {"output": f"🗨️ Esta es una respuesta general para: '{user_input}'"}
+def handle_chat():
+    """
+    generate default response when the question is out of scope
+    """
+    return (
+        "ℹ️ NAIA is here to support your health and recovery after surgery, based on your medical history and current symptoms.\n"
+        "This question falls outside the scope of what I can safely help with.\n"
+        "If you have any concerns related to your health, recovery, medications, or symptoms, I'm here for you."
+    )

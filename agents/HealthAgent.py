@@ -47,7 +47,6 @@ def handle_health_query(state: Dict) -> Dict:
         }
         symptomManager.add_entry(entry)
 
-
         if severity in ["severe", "high", "grave"]:
             response = ("🚨 Warning: Your symptoms seem severe. "
                         "Please call emergency services or go to the hospital immediately.")
@@ -77,8 +76,12 @@ def handle_health_query(state: Dict) -> Dict:
             recommendation = groq.get_chat_response(prompt)
             response = f"🩺 Based on your condition: {recommendation.strip()}"
 
-    return {"input": user_input, "output": response}
-        
+    output = response
+    reminder = state.get("reminder", "")
+    if reminder:
+        output = reminder + output
+    return {"input": user_input, "output": output}
+           
 
 def build_nhs_search_url(surgery_name: str) -> str:
     query = "+".join(surgery_name.lower().split()) 
