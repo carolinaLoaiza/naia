@@ -1,6 +1,6 @@
 {
-    "patient_id": "12345",
-    "name": "Mick Jagger",
+    "patient_id": "12345DG",
+    "name": "Dave Grohl",
     "age": 68,
     "gender": "male",
     "location": {
