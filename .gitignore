@@ -211,3 +211,4 @@ __marimo__/
 data/chat_history_user*.json
 data/medicationTracker_user*.json
 data/symptoms_user*.json
+data/history_user*.json
