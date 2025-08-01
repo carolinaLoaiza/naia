@@ -35,13 +35,11 @@ def play_audio(text: str, filename: str = "voice.mp3", voice: str = "shimmer"):
                     </audio>
                     <script>
                         const audio = document.getElementById("audio{rand_id}");
-                        setTimeout(() => {{
-                            audio.play().catch(e => console.log("Playback error:", e));
-                        }}, 500);  // medio segundo de retraso para evitar corte
+                        audio.play().catch(e => console.log("Playback error:", e));
                     </script>
                 </body>
                 </html>
-            """, height=0)
+            """, height=1)
     except Exception as e:
         st.warning(f"Could not convert text to speech: {e}")
 
