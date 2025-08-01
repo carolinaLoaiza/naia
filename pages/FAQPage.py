@@ -8,7 +8,7 @@ if "page_config_set" not in st.session_state:
         initial_sidebar_state="expanded"
     )
     st.session_state.page_config_set = True
-st.title(":orange[NAIA - FAQ]")
+st.title(":orange[NAIA - FAQ ]")
 
 # Autenticathion
 if not st.session_state.get("authentication_status"):
