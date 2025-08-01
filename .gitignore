@@ -206,3 +206,9 @@ marimo/_static/
 marimo/_lsp/
 __marimo__/
 .streamlit/secrets.toml
+
+#automatically files from DB
+data/chat_history_user*.json
+data/medicationTracker_user*.json
+data/symptoms_user*.json
+data/history_user*.json
