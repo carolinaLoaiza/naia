@@ -51,7 +51,7 @@
     },
     "post_surgery_recommendations": {
          "at_home": [
-           "avoid intense physical effort, apply ice 3 times a day, use inhaler as needed"
+           "avoid intense physical effort, apply ice 3 times a day, use inhaler as needed."
         ],
         "at_hospital": []
     },
