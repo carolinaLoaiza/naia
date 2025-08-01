@@ -43,14 +43,13 @@ col1, col2 = st.columns(2)
 with col1:
     render_access("Chat", "Talk to NAIA for guidance, questions, and post-op support.", icons["Chat"], "pages/Chat.py")
 with col2:
-    render_access("Symptom Tracker", "Log your daily symptoms and get real-time insights.", icons["Symptom Tracker"], "pages/Symptom_Tracker.py")
+    render_access("Symptom Tracker", "Log your daily symptoms and get real-time insights.", icons["Symptom Tracker"], "pages/Symptoms.py")
 
 col3, col4 = st.columns(2)
 with col3:
-    render_access("Medications", "View your current prescriptions and track usage.", icons["Medications"], "pages/Medications.py")
+    render_access("Medications", "View your current prescriptions and track usage.", icons["Medications"], "pages/Medication.py")
 with col4:
     render_access("FAQ", "Find answers to the most common recovery questions.", icons["FAQ"], "pages/FAQ.py")
-
 
 # Footer or credits
 st.markdown("<hr>", unsafe_allow_html=True)
