@@ -27,7 +27,7 @@ def handle_symptom_query(state):
         severity, reco_text = agent.process_symptom(user_input, duration_days=1)
         output = f"🔎 The symptom was evaluated as: **{severity}**."
         if reco_text:
-            output += f"\n\n🩺 **Recommendation**:\n{reco_text}"
+            output += f"\n\n🩺:\n{reco_text}"
         return {"output": output, "username": username}
 
     except FileNotFoundError:

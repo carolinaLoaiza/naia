@@ -35,6 +35,7 @@ def handle_recommendation_query(state):
     chat_context = chat_history_manager.load()
     agent = HealthRecommendationAgent(patient_record)
     recommendation = agent.generate_recommendation(stored_symptoms, chat_context=chat_context,  user_query=user_input)
+    recommendation = f"📋 " + recommendation                
     return {"output": recommendation, "username": username}
 
     #return {"output": f"🗨️ This is a handle_recommendation_query: '{user_input}'"}
@@ -92,11 +93,7 @@ class HealthRecommendationAgent:
         nhs_context = self.get_nhs_recommendations(self.patient_record.get("surgery", ""))
         # 4) Recorta NHS si es muy largo
         nhs_ctx = (nhs_context or "")[:4000]
-        #print("patient_json:", self.patient_record)
         patient_name = self.patient_record.get("name", "Patient")
-        print("--------------------------------")
-        print("NHS", nhs_context)
-        print("--------------------------------")
         prompt = textwrap.dedent(f"""
             You are a kind and knowledgeable post-operative healthcare assistant.
             You will receive:
@@ -162,7 +159,6 @@ class HealthRecommendationAgent:
         # 4) Recorta NHS si es muy largo
         nhs_ctx = (nhs_context or "")[:4000]
 
-        #print("patient_json:", self.patient_record)
         patient_name = self.patient_record.get("name", "Patient")
         prompt = textwrap.dedent(f"""
             You are a compassionate healthcare assistant.
