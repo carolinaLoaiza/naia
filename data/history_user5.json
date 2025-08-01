@@ -1,0 +1,60 @@
+{
+    "patient_id": "004TT",
+    "name": "Tina Turner",
+    "age": 62,
+    "gender": "female",
+    "location": {
+    "address": "7 Kensington Palace Gardens",
+    "city": "London",
+    "postcode": "W8 4QG",
+    "region": "Greater London",
+    "country": "UK"
+    },
+    "surgery": "hip replacement",
+    "surgery_date": "2025-07-15",
+    "medications": [
+    {"name": "oxycodone", "dose": "5mg", "frequency": "2x/day", "duration": "5 days"},
+    {"name": "aspirin", "dose": "75mg", "frequency": "1x/day", "duration": "10 days"},
+    {"name": "metformin", "dose": "500mg", "frequency": "2x/day", "duration": "ongoing"},
+    {"name": "lisinopril", "dose": "10mg", "frequency": "1x/day", "duration": "ongoing"}
+    ],
+    "prescription": {
+    "instructions": [
+        "Oxycodone for pain, do not exceed prescribed amount.",
+        "Take aspirin to prevent blood clots.",
+        "Continue all chronic condition medications."
+    ],
+    "refill_policy": "Pain meds non-refillable. Chronic meds refill monthly."
+    },
+    "pre_existing_conditions": [
+    {"name": "type 2 diabetes", "status": "moderate"},
+    {"name": "hypertension", "status": "controlled"},
+    {"name": "osteoarthritis", "severity": "severe"},
+    {"name": "high cholesterol", "status": "under treatment"}
+    ],
+    "past_medical_history": [
+    {"condition": "gastroenteritis", "year": 2013}
+    ],
+    "family_history": [],
+    "allergies": ["sulfa drugs"],
+    "immunizations": [
+    {"vaccine": "influenza", "date": "2024-09-15"}
+    ],
+    "social_history": {
+    "smoking": "never",
+    "alcohol": "none",
+    "exercise": "daily walking with aid"
+    },
+    "post_surgery_recommendations": {
+    "at_home": [
+        "use walker or cane",
+        "physiotherapy exercises daily",
+        "monitor blood pressure and glucose"
+    ],
+    "at_hospital": []
+    },
+    "follow_up_appointments": [
+    {"date": "2025-08-01", "department": "orthopedics"}
+    ],
+    "notes": "Progress satisfactory. Mobility improving."
+}
