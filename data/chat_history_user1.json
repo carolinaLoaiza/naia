@@ -1,0 +1,46 @@
+[
+  {
+    "role": "system",
+    "content": "You are a helpful assistant for post-surgery recovery."
+  },
+  {
+    "role": "assistant",
+    "content": "Good morning, Mick Jagger. How are you feeling today?\n\nWould you like to report any symptoms or tell me how you're doing?"
+  },
+  {
+    "role": "user",
+    "content": "I have a knee inflamation "
+  },
+  {
+    "role": "assistant",
+    "content": "🔎 The symptom was evaluated as: **moderate**.\n\n🩺:\nMick Jagger, thank you for sharing your symptoms. Here's some guidance:\n\n- Take your medications as prescribed, including ibuprofen 400mg three times a day for 7 days, to help manage pain and inflammation.\n- Use crutches or walking sticks at first, and gradually reduce the support as you feel more confident, to protect your knee and promote healing.\n- Monitor your symptoms closely, and seek immediate help if you experience severe pain, difficulty breathing, chest pains, or if your knee becomes red, tender, swollen, or painful and doesn't improve or worsens.\n- Follow the exercises and advice provided by your physiotherapist or occupational therapist to help with long-term strength and movement in your knee.\n- If you have any concerns or questions, don't hesitate to ask your healthcare team or contact 111 for further guidance.\n\nPlease be aware that if you experience severe symptoms, such as difficulty breathing, chest pains, or severe pain, you should call 999 for an ambulance immediately."
+  },
+  {
+    "role": "user",
+    "content": "How can I rest my knee if I want to watch TV ? "
+  },
+  {
+    "role": "assistant",
+    "content": "Mick Jagger, I'm happy to help with your question. Here's what I can tell you:\n\nWhen you want to rest your knee while watching TV, it's a good idea to elevate your knee and keep it straight. You can use a pillow or cushion to prop up your knee and keep it at a comfortable height. This can help reduce swelling and promote healing.\n\nYou can also consider using a recliner or a comfortable chair with a footrest to support your knee and make it easier to relax while watching TV.\n\nRemember to follow the advice of your healthcare team and take regular breaks to rest and move around. This can help prevent stiffness and promote a smooth recovery.\n\nIf you have any further questions or concerns, please don't hesitate to ask."
+  },
+  {
+    "role": "user",
+    "content": "Can I stretch my knee ? "
+  },
+  {
+    "role": "assistant",
+    "content": "Mick Jagger, I'm happy to help with your question. Here's what I can tell you:\n\nIt's generally recommended to avoid bending or stretching your knee too much in the early stages of recovery. However, gentle exercises and stretches can help with your recovery. Your physiotherapist or occupational therapist will provide you with specific exercises and advice on how to safely stretch and strengthen your knee.\n\nIn the meantime, you can try some gentle movements while sitting or lying down, such as straightening and bending your knee while keeping your foot flat on the floor. However, it's essential to follow the advice of your healthcare team and avoid any exercises that cause pain or discomfort.\n\nIf you have any further questions or concerns, please don't hesitate to ask."
+  },
+  {
+    "role": "assistant",
+    "content": "Good morning, Mick Jagger. How are you feeling today?\n\nWould you like to report any symptoms or tell me how you're doing?"
+  },
+  {
+    "role": "user",
+    "content": "Can I go outside for a walk ? "
+  },
+  {
+    "role": "assistant",
+    "content": "📋 Mick Jagger, I'm happy to help with your question. Here's what I can tell you:\n\nIt's generally recommended to avoid strenuous activities, including walking, for a few days after surgery. However, short, gentle walks can be beneficial for your recovery. You should use crutches or walking sticks at first, and gradually reduce the support as you feel more confident.\n\nBefore going outside for a walk, make sure to follow these guidelines:\n\n- Use your crutches or walking sticks as recommended by your healthcare team.\n- Take regular breaks to rest and elevate your knee.\n- Avoid walking on uneven or slippery surfaces.\n- Keep your walks short and gentle, and gradually increase the distance and duration as you feel more comfortable.\n\nRemember to follow the advice of your healthcare team and take regular breaks to rest and move around. If you have any further questions or concerns, please don't hesitate to ask."
+  }
+]

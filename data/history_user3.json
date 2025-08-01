@@ -1,0 +1,52 @@
+{
+    "patient_id": "001FM",
+    "name": "Freddie Mercury",
+    "age": 28,
+    "gender": "male",
+    "location": {
+    "address": "1 Garden Lodge",
+    "city": "London",
+    "postcode": "W8 4PT",
+    "region": "Greater London",
+    "country": "UK"
+    },
+    "surgery": "wisdom tooth extraction",
+    "surgery_date": "2025-07-25",
+    "medications": [
+    {"name": "paracetamol", "dose": "500mg", "frequency": "3x/day", "duration": "3 days"}
+    ],
+    "prescription": {
+    "instructions": [
+        "Paracetamol (500mg) to be taken every 8 hours as needed for pain. Do not exceed 4g/day.",
+        "Avoid alcohol during the medication period.",
+        "Rinse mouth with warm saline twice a day."
+    ],
+    "refill_policy": "No refills needed."
+    },
+    "pre_existing_conditions": [],
+    "past_medical_history": [
+    {"condition": "tonsillitis", "year": 2017}
+    ],
+    "family_history": [],
+    "allergies": [],
+    "immunizations": [
+    {"vaccine": "influenza", "date": "2024-10-01"}
+    ],
+    "social_history": {
+    "smoking": "never",
+    "alcohol": "occasional",
+    "exercise": "regular gym"
+    },
+    "post_surgery_recommendations": {
+    "at_home": [
+        "avoid chewing on the affected side",
+        "apply ice packs for swelling",
+        "eat soft foods for 48 hours"
+    ],
+    "at_hospital": []
+    },
+    "follow_up_appointments": [
+    {"date": "2025-07-30", "department": "dentistry"}
+    ],
+    "notes": "Procedure simple, recovery expected to be rapid."
+}

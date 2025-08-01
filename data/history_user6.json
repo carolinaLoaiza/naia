@@ -1,0 +1,59 @@
+{
+    "patient_id": "003DB",
+    "name": "David Bowie",
+    "age": 55,
+    "gender": "male",
+    "location": {
+    "address": "32 Soho Square",
+    "city": "London",
+    "postcode": "W1D 3PX",
+    "region": "Greater London",
+    "country": "UK"
+    },
+    "surgery": "lung biopsy",
+    "surgery_date": "2025-07-19",
+    "medications": [
+    {"name": "morphine", "dose": "10mg", "frequency": "as needed", "duration": "5 days"},
+    {"name": "amoxicillin", "dose": "500mg", "frequency": "3x/day", "duration": "7 days"}
+    ],
+    "prescription": {
+    "instructions": [
+        "Morphine for severe pain only. Monitor drowsiness.",
+        "Complete full antibiotic course.",
+        "Avoid operating heavy machinery."
+    ],
+    "refill_policy": "Morphine can be extended with approval. Antibiotics not refilled."
+    },
+    "pre_existing_conditions": [
+    {"name": "COPD", "severity": "severe"},
+    {"name": "type 2 diabetes", "status": "controlled"}
+    ],
+    "past_medical_history": [
+    {"condition": "tuberculosis", "year": 2005}
+    ],
+    "family_history": [
+    {"relative": "father", "condition": "lung cancer"}
+    ],
+    "allergies": ["penicillin"],
+    "immunizations": [
+    {"vaccine": "COVID-19", "date": "2023-10-01"},
+    {"vaccine": "pneumococcal", "date": "2023-01-15"}
+    ],
+    "social_history": {
+    "smoking": "former smoker",
+    "alcohol": "moderate",
+    "exercise": "limited due to condition"
+    },
+    "post_surgery_recommendations": {
+    "at_home": [
+        "avoid cold exposure",
+        "daily use of inhaler",
+        "deep breathing exercises recommended"
+    ],
+    "at_hospital": []
+    },
+    "follow_up_appointments": [
+    {"date": "2025-07-29", "department": "respiratory medicine"}
+    ],
+    "notes": "Patient stable. Monitor breathing and glucose levels daily."
+}

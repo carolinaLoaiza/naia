@@ -1,0 +1,56 @@
+{
+    "patient_id": "005CD",
+    "name": "Celine Dion",
+    "age": 78,
+    "gender": "female",
+    "location": {
+    "address": "4 Abbey Road",
+    "city": "Liverpool",
+    "postcode": "L18 8BF",
+    "region": "Merseyside",
+    "country": "UK"
+    },
+    "surgery": "cataract surgery",
+    "surgery_date": "2025-07-10",
+    "medications": [
+    {"name": "prednisolone eye drops", "dose": "1 drop", "frequency": "4x/day", "duration": "10 days"},
+    {"name": "moxifloxacin eye drops", "dose": "1 drop", "frequency": "3x/day", "duration": "7 days"}
+    ],
+    "prescription": {
+    "instructions": [
+        "Apply eye drops as directed, wash hands before and after use.",
+        "Do not rub or press the eye.",
+        "Wear protective glasses during the day."
+    ],
+    "refill_policy": "No refills required unless irritation persists."
+    },
+    "pre_existing_conditions": [
+    {"name": "glaucoma", "status": "under control"}
+    ],
+    "past_medical_history": [
+    {"condition": "fractured wrist", "year": 2016}
+    ],
+    "family_history": [],
+    "allergies": [],
+    "immunizations": [
+    {"vaccine": "influenza", "date": "2024-11-01"},
+    {"vaccine": "COVID-19", "date": "2023-08-10"}
+    ],
+    "social_history": {
+    "smoking": "never",
+    "alcohol": "none",
+    "exercise": "light stretching"
+    },
+    "post_surgery_recommendations": {
+    "at_home": [
+        "limit screen time",
+        "avoid water entering the eye",
+        "attend follow-up to check pressure"
+    ],
+    "at_hospital": []
+    },
+    "follow_up_appointments": [
+    {"date": "2025-07-17", "department": "ophthalmology"}
+    ],
+    "notes": "Surgery successful. Advised on light sensitivity."
+}
