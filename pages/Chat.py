@@ -162,8 +162,12 @@ if response:
             elif isinstance(msg, AIMessage):
                 messages.append(groqChat.ai_message(msg.content))
 
-        #assistant_reply = groqChat.get_response(messages)
-        agent_state = {"input": user_text, "output": ""}
+        agent_state = {
+            "input": user_text,
+            "output": "",
+            "username": username,
+            "reminder": ""
+        }
         final_state = st.session_state.agent_graph.invoke(agent_state)
         assistant_reply = final_state["output"]
 

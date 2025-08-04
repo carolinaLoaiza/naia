@@ -27,29 +27,31 @@ def classify_intent(state: dict) -> str:
     prompt = f"""
     You are a routing assistant for a multi-agent healthcare assistant.
 
-    Given a user's message, decide which agent should handle it:
+    Your task is to classify the user's message into one of these agents:
+    
+    - "symptom_agent": if the user is describing physical symptoms (e.g., "I have pain", "I'm nauseous", "It hurts")
+    - "reminder_agent": if the user is asking to check, create, or confirm medication or appointment reminders (e.g., "Did I take my ibuprofen?", "Remind me at 9", "What meds are due?")
+    - "medical_record_agent": if the user is asking about general medical history like allergies, past prescriptions, surgeries, or lab results
+    - "recommendation_agent": if the user wants medical advice or next steps (e.g., "what should I do?", "is this normal?", "should I go to the hospital?")
+    - "chat_agent": if the user is being friendly or casual (e.g., "how are you?", "what's your name?")
 
-    - "symptom_agent": if the user is describing symptoms (e.g., "it hurts", "I have a fever", etc.)
-    - "medical_record_agent": if the user is asking about allergies, prescriptions, surgeries, or medical history
-    - "recommendation_agent": if the user is asking for advice, what to do, next steps, etc.
-    - "reminder_agent": if the user wants to create/check reminders for medications or appointments
-    - "chat_agent": if the user is being friendly or asking general things (e.g., "how are you?", "what's your name?")
+    If MULTIPLE categories seem relevant, follow this priority:
+    1. symptom_agent  
+    2. reminder_agent  
+    3. medical_record_agent  
+    4. recommendation_agent  
+    5. chat_agent
 
-    If MULTIPLE categories apply, PRIORITIZE "symptom_agent" first.
-    Respond with just one of these: symptom_agent, medical_record_agent, recommendation_agent, reminder_agent, chat_agent.
+    Respond with ONLY one of: symptom_agent, reminder_agent, medical_record_agent, recommendation_agent, chat_agent
 
     Examples:
-    - "I have pain in my leg" → symptom_agent 
-    - "Can you remind me to take my medicine?" → reminder_agent  
-    - "Set a reminder for my next pill at 9 PM" → reminder_agent  
-    - "Hi, how are you?" → chat_agent  
-    - "What can I do for a headache?" → recommendation_agent  
-    - "Am I allergic to anything?" → medical_record_agent  
-    - "Do I have any upcoming surgeries?" → medical_record_agent  
-    - "I feel dizzy and nauseous" → symptom_agent  
-    - "Is this pain normal after my operation?" → recommendation_agent  
-    - "What was my prescription again?" → medical_record_agent  
-    - "Should I go to the hospital for chest pain?" → recommendation_agent  
+    - "I have pain in my leg" → symptom_agent
+    - "Remind me to take my pills at 8pm" → reminder_agent
+    - "Did I take my ibuprofen?" → reminder_agent
+    - "What were my last test results?" → medical_record_agent
+    - "Do I have any allergies?" → medical_record_agent
+    - "Should I go to the ER?" → recommendation_agent
+    - "Hey, how are you?" → chat_agent
 
     User message: "{user_input}"
     """

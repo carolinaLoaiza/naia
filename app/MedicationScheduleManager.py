@@ -83,4 +83,39 @@ class MedicationScheduleManager:
         self.schedule = schedule
         return schedule
 
+    def get_upcoming_doses(self, minutes_ahead=1):
+        """
+        Returns two lists:
+        - meds_now: meds to take at the current time (HH:MM)
+        - meds_soon: meds to take in 'minutes_ahead' minutes
+        """
+        now = datetime.now()
+        today_str = now.strftime("%Y-%m-%d")
+        current_time_str = now.strftime("%H:%M")
+        upcoming_time_str = (now + timedelta(minutes=minutes_ahead)).strftime("%H:%M")
 
+        meds_now = []
+        meds_soon = []
+
+        for entry in self.schedule:
+            if entry["date"] != today_str or entry["taken"]:
+                continue
+
+            if entry["time"] == current_time_str:
+                meds_now.append(entry)
+            elif entry["time"] == upcoming_time_str:
+                meds_soon.append(entry)
+
+        return meds_now, meds_soon
+
+    def mark_as_taken(self, med_name, date_str, time_str):
+        """
+        Marks a specific medication dose as taken
+        """
+        for entry in self.schedule:
+            if (entry["med_name"] == med_name and
+                entry["date"] == date_str and
+                entry["time"] == time_str):
+                entry["taken"] = True
+                return True
+        return False

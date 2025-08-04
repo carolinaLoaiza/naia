@@ -138,3 +138,41 @@ class GroqChat:
         """
         response = self.classifier_llm.invoke([HumanMessage(content=prompt)]).content.strip()
         return response.lower()
+    
+    def answer_medication_question(self, user_input: str, medication_data: list) -> str:
+        # Formatea el JSON como string para que el modelo lo procese
+        medication_json_str = json.dumps(medication_data, indent=2)
+
+        prompt = f"""
+        You are a helpful assistant that helps users manage their medication schedules after surgery.
+
+        Here is the user's medication tracker in JSON format:
+
+        ```json
+        {medication_json_str}
+        ```
+
+        Based on this data, answer the user's question below in a clear and helpful tone. If a medication is due soon, remind the user.
+        If no medication is due, let them know. If the data is incomplete, be honest about it.
+
+        User question: "{user_input}"
+
+        Respond in a concise, friendly tone.
+        """
+
+        response = self.chat_llm.invoke([HumanMessage(content=prompt)]).content.strip()
+        return response
+    
+    def extract_taken_medication(self, user_input: str) -> str:
+        prompt = f"""
+        The user may be confirming that they have taken a medication.
+
+        Your task is to extract ONLY the name of the medication they say they have taken.
+        If no medication is clearly mentioned, respond with "none".
+
+        Respond with the exact medication name or "none".
+
+        User: "{user_input}"
+        """
+        response = self.classifier_llm.invoke([HumanMessage(content=prompt)]).content.strip()
+        return response.lower()
