@@ -26,6 +26,7 @@ icons = {
     "Chat": "assets/Naia v2 icon.png",  # Or use "images/chat_icon.png"
     "Symptom Tracker": "assets/sympton icon.png",
     "Medications": "assets/medication icon.png",
+    "Routine": "assets/routine icon.png",
     "FAQ": "assets/faq icon.png"
 }
 
@@ -39,17 +40,19 @@ def render_access(title, description, icon_path, page_url=None):
         st.switch_page(page_url) if page_url else st.info("Page not available")
 
 # ---- Diseño en 2x2 ----
-col1, col2 = st.columns(2)
+col1, col2, col3 = st.columns(3)
 with col1:
-    render_access("Chat", "Talk to NAIA for guidance, questions, and post-op support.", icons["Chat"], "pages/Chat.py")
+    render_access("Chat", "Talk to NAIA for guidance, questions, and post-op support", icons["Chat"], "pages/Chat.py")
 with col2:
-    render_access("Symptom Tracker", "Log your daily symptoms and get real-time insights.", icons["Symptom Tracker"], "pages/Symptoms.py")
-
-col3, col4 = st.columns(2)
+    render_access("Symptom Tracker", "Log your daily symptoms and get real-time insights", icons["Symptom Tracker"], "pages/Symptoms.py")
 with col3:
-    render_access("Medications", "View your current prescriptions and track usage.", icons["Medications"], "pages/Medication.py")
+    render_access("Medications", "View your current prescriptions and track usage", icons["Medications"], "pages/Medication.py")
+
+col4, col5, col6 = st.columns(3)
 with col4:
-    render_access("FAQ", "Find answers to the most common recovery questions.", icons["FAQ"], "pages/FAQ.py")
+    render_access("Routine", "View your current post surgery recommendations and track usage", icons["Routine"], "pages/Routine.py")
+with col5:
+    render_access("FAQ", "Find answers to the most common recovery questions", icons["FAQ"], "pages/FAQ.py")
 
 # Footer or credits
 st.markdown("<hr>", unsafe_allow_html=True)

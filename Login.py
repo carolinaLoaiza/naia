@@ -33,6 +33,7 @@ if st.session_state['authentication_status']:
         "pages/Chat.py",
         "pages/Symptoms.py",
         "pages/Medication.py",
+        "pages/Routine.py",
         "pages/FAQ.py"])  # Parámetro nombrado
     authenticator.logout("Log Out", "sidebar")  # Al final
     page.run()

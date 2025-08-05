@@ -176,3 +176,85 @@ class GroqChat:
         """
         response = self.classifier_llm.invoke([HumanMessage(content=prompt)]).content.strip()
         return response.lower()
+
+
+    def extract_routine_from_medical_record(self, routine_text, surgery_date):
+        prompt = f"""
+            You are a routine extraction assistant for post-surgical care.
+
+            Given the following doctor's instruction: {routine_text}
+            Given this surgery date: {surgery_date},
+            
+            Please extract ONLY the post-surgical routine activities that specify at least two of three of the following clearly or implicitly:
+            - frequency_per_day (times per day, integer greater than zero),
+            - duration_minutes (minutes per session, integer greater than zero),
+            - total_days (total number of days, integer greater than zero).
+
+            If an instruction lacks two or more of these, exclude it completely from the output.
+
+            Please provide ONLY the JSON array representing the routine schedule.
+            Do NOT include any explanations or extra text.
+            Return ONLY ONE raw JSON object. No Markdown, no comments, no extra text.
+            Return a JSON formatted as:
+
+            Instructions:
+            - Convert all frequency expressions like "every 4 hours", "every 3 hours", etc. into explicit time values starting from 06:00.
+            - For example, "every 4 hours" should become ["06:00", "10:00", "14:00", "18:00", "22:00"].
+            - Always provide explicit time slots as a list of HH:MM strings in 24-hour format.
+            - Do NOT include phrases like "every 4 hours" or "as needed" as time values.
+            - Ignore any instructions that do not specify frequency, duration per session, and total number of days explicitly or implicitly.
+            - Recommendations that only provide general advice without schedule details should be excluded.
+
+            Extract the following fields as JSON:
+            - activity: short name of the activity (e.g., "Apply ice to the knee")
+            - frequency_per_day: how many times per day (integer)
+            - duration_minutes: how long each session lasts (in minutes)
+            - total_days: for how many days (integer)
+            - start_offset_days: when to start (0 = same day as surgery, 1 = one day after, etc.)
+            - preferred_times: list of time strings (["09:00", "15:00"]) or empty if not specified
+            - notes: optional clarifications
+
+            Return ONLY ONE valid JSON object. Do not include explanations or formatting.
+                       
+            """
+        response = self.classifier_llm.invoke(prompt).content.strip()
+        print ("response" , response)
+        return response 
+    
+
+    def interpret_routine_from_medical_record(self, routine_text, surgery_date):
+        prompt = f"""
+            You are a helpful assistant. Given this surgery date: {surgery_date},
+            Please convert this routine description into a structured schedule
+            of activities with dates, times, and duration for each item:
+            {routine_text}
+
+            Please provide ONLY the JSON array representing the routine schedule.
+            Do NOT include any explanations or extra text.
+            Return ONLY ONE raw JSON object. No Markdown, no comments, no extra text.
+            Return a JSON formatted as:
+            - routines: array of objects with fields:
+                - activity (string)
+                - date (string)
+                - tima (string)
+                - duration_minutes (integer or null)
+                - completed 
+            Respond with JSON only.
+           
+            """
+        response = self.classifier_llm.invoke(prompt).content.strip()
+        print("response " , response)
+        try:
+            parsed = json.loads(response)
+            routine_list =  parsed["routines"]
+
+            for item in routine_list:
+                item["completed"] = item.get("completed", False)
+
+            return routine_list
+        except Exception as e:
+            print("❌ Error parsing routine schedule:", e)
+            return []
+
+
+

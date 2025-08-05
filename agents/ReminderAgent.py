@@ -31,26 +31,25 @@ def check_pending_medications(tracker, window_minutes=30):
 
 
 def mark_medication_as_taken(username, med_name):
-    tracker_file = f"data/medicationTracker_{username}.json"
-    if not os.path.exists(tracker_file):
-        return False
+    tracker = load_tracker(username)
+    found = False
+    already_taken = False
 
-    with open(tracker_file, "r", encoding="utf-8") as f:
-        tracker = json.load(f)
-
-    updated = False
-    for med in tracker:
-        if med.get("taken"):
-            continue
-        if med.get("med_name", "").lower() == med_name:
-            med["taken"] = True
-            updated = True
+    for entry in tracker:
+        if entry["med_name"].lower() == med_name.lower():
+            if entry.get("taken"):
+                already_taken = True
+                continue
+            entry["taken"] = True
+            found = True
             break
 
-    if updated:
-        with open(tracker_file, "w", encoding="utf-8") as f:
-            json.dump(tracker, f, indent=2)
-    return updated
+    if found:
+        with open(f"data/medicationTracker_{username}.json", "w", encoding="utf-8") as f:
+            json.dump(tracker, f, ensure_ascii=False, indent=2)
+        return True, False
+
+    return False, already_taken
 
 
 
@@ -69,11 +68,14 @@ def handle_reminder_query(state):
 
     if taken_med != "none":
         updated = mark_medication_as_taken(username, taken_med)
+        updated, already_taken = mark_medication_as_taken(username, taken_med)
+
         if updated:
             return {"output": f"✅ Got it! I've marked **{taken_med}** as taken."}
+        elif already_taken:
+            return {"output": f"📌 Noted! You've already marked **{taken_med}** as taken earlier."}
         else:
             return {"output": f"⚠️ I understood you took **{taken_med}**, but couldn't find it in your schedule."}
-        
 
     keywords = ["take medicine", "take my meds", "medication", "meds", "reminder", "medication schedule",
     "pill", "pills", "medicine time", "what medicine", "what meds", "when do i take",
