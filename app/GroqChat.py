@@ -218,7 +218,6 @@ class GroqChat:
                        
             """
         response = self.classifier_llm.invoke(prompt).content.strip()
-        print ("response" , response)
         return response 
     
 

@@ -26,7 +26,6 @@ class RoutineScheduleManager:
         routine_items = data.get("post_surgery_recommendations", {}).get("at_home", [])            
         # Concatenar o formatear como texto para enviar a GPT
         routine_text = "\n".join(routine_items) if routine_items else ""
-        print("routine_text ", routine_text)
 
         surgery_date_str = data.get("surgery_date", datetime.now().strftime("%Y-%m-%d"))
         surgery_date = datetime.strptime(surgery_date_str, "%Y-%m-%d")
@@ -39,15 +38,12 @@ class RoutineScheduleManager:
                 routine_schedule_raw = chat.extract_routine_from_medical_record(routine_text, surgery_date)
                 routine_schedule_data = json.loads(routine_schedule_raw)
                 routine_schedule_generated = self.build_schedule_from_extracted_info(routine_schedule_data, surgery_date)
-                print("routine_schedule generated ", routine_schedule_generated )
             except Exception as e:
                 print(f"Error interpreting routine schedule: {e}")
                 # fallback o rutina vacía
                 routine_schedule_generated = []
         else:
             print("No routine text found in medical record.")
-
-        print("routine_schedule generated x 2", routine_schedule_generated )
 
         with open(routine_tracker_path, "w", encoding="utf-8") as f:
             json.dump(routine_schedule_generated, f, indent=2)
