@@ -8,6 +8,8 @@ from agents.MedicalRecordAgent import handle_medical_record_query
 from agents.HealthRecommendationAgent import handle_recommendation_query
 from typing import TypedDict
 from agents.AgentState import AgentState
+
+from app.MedicationScheduleManager import MedicationScheduleManager
     
 # the node acts as a router: should be declared before the nodes it routes to
 def router_node(state: AgentState) -> AgentState:
@@ -49,13 +51,48 @@ def build_graph():
     return builder.compile()
 
 def check_reminder_node(state: AgentState) -> AgentState:
-    from agents.ReminderAgent import load_tracker, check_pending_medications  # importa aquí si no está disponible arriba
+    
+    # from agents.AppointmentAgent import load_appointments, check_pending_appointments
+    # from agents.RoutineAgent import load_routines, check_pending_routines
     username = state.get("username")
-    tracker = load_tracker(username)
-    upcoming = check_pending_medications(tracker)
     reminder_msg = ""
-    if upcoming:
-        reminder_msg = "💊 **Reminder**:\n" + "\n".join(upcoming) + "\n\n"
+    medicationScheduleManager = MedicationScheduleManager(username)
+
+    # Medication reminders
+    upcoming_medicines = medicationScheduleManager.check_pending_medications()
+    if upcoming_medicines:
+        reminder_msg = "💊 **Reminder**:\n" + "\n".join(upcoming_medicines) + "\n\n"
+
+
+    # Appointments reminders
+
+    # Recovery reminders
 
     state["reminder"] = reminder_msg
     return state
+
+
+    # from agents.ReminderAgent import load_tracker, check_pending_medications
+
+
+    # username = state.get("username")
+    # reminder_msg = ""
+
+    # # 💊 Medication
+    # med_tracker = load_tracker(username)
+    # meds = check_pending_medications(med_tracker)
+    # if meds:
+    #     reminder_msg += "💊 **Medication Reminder**:\n" + "\n".join(meds) + "\n\n"
+
+    # # 📅 Appointments
+    # appts = check_pending_appointments(username)
+    # if appts:
+    #     reminder_msg += "📅 **Appointment Today**:\n" + "\n".join(appts) + "\n\n"
+
+    # # 🧘 Recovery routines
+    # routines = check_pending_routines(username)
+    # if routines:
+    #     reminder_msg += "🧘 **Recovery Tasks Due**:\n" + "\n".join(routines) + "\n\n"
+
+    # state["reminder"] = reminder_msg
+    # return state

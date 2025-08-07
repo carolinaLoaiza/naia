@@ -5,12 +5,13 @@ from PIL import Image
 if "page_config_set" not in st.session_state:
     st.set_page_config(
         page_title="NAIA assistant",
-        page_icon="assets/nurse.png",
+        page_icon="assets/Naia window icon.png",
         layout="wide",
         initial_sidebar_state="expanded"
     )
     st.session_state.page_config_set = True
 st.title(":orange[Welcome to NAIA]")
+
 
 st.markdown("""
 Nurse Artificial Intelligence Assistant - NAIA is your smart post-surgery assistant.  
@@ -23,11 +24,12 @@ st.divider()
 
 # Optional icons/images
 icons = {
-    "Chat": "assets/Naia v2 icon.png",  # Or use "images/chat_icon.png"
-    "Symptom Tracker": "assets/sympton icon.png",
-    "Medications": "assets/medication icon.png",
-    "Routine": "assets/routine icon.png",
-    "FAQ": "assets/faq icon.png"
+    "Chat": "assets/Naia icon v2.jpeg",  # Or use "images/chat_icon.png"
+    "Symptom Tracker": "assets/Symptom icon v2.jpeg",
+    "Medications": "assets/Medication icon v2.jpeg",
+    "Routine": "assets/Recovery routine icon v7.png",
+    "Appointment": "assets/Appointment icon v6.png",
+    "FAQ": "assets/Faq icon v2.jpeg"
 }
 
 
@@ -44,15 +46,17 @@ col1, col2, col3 = st.columns(3)
 with col1:
     render_access("Chat", "Talk to NAIA for guidance, questions, and post-op support", icons["Chat"], "pages/Chat.py")
 with col2:
-    render_access("Symptom Tracker", "Log your daily symptoms and get real-time insights", icons["Symptom Tracker"], "pages/Symptoms.py")
+    render_access("Symptom Tracker", "Log your daily symptoms and get real-time insights", icons["Symptom Tracker"], "pages/Symptom Tracker.py")
 with col3:
-    render_access("Medications", "View your current prescriptions and track usage", icons["Medications"], "pages/Medication.py")
+    render_access("Medications", "View your current prescriptions and track usage", icons["Medications"], "pages/Medications.py")
 
 col4, col5, col6 = st.columns(3)
 with col4:
-    render_access("Routine", "View your current post surgery recommendations and track usage", icons["Routine"], "pages/Routine.py")
+    render_access("Recovery Check-Ups", "Daily tasks and care reminders to support your healing after surgery", icons["Routine"], "pages/Recovery Check Ups.py")
 with col5:
-    render_access("FAQ", "Find answers to the most common recovery questions", icons["FAQ"], "pages/FAQ.py")
+    render_access("Follow-Up Appointments", "Keep track of your upcoming medical visits and check-ins", icons["Appointment"], "pages/Follow-Up Appointments.py")
+with col6:
+    render_access("FAQ", "Find quick answers to common questions about navigating features, managing your recovery tasks, tracking appointments, and customizing your settings.", icons["FAQ"], "pages/FAQ.py")
 
 # Footer or credits
 st.markdown("<hr>", unsafe_allow_html=True)

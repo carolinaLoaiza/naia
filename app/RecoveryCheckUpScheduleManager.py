@@ -1,53 +1,58 @@
 from datetime import datetime, timedelta
 import json
+import os
 
 from app.GroqChat import GroqChat
 
-class RoutineScheduleManager:
-    def __init__(self, routine_items, start_date=None):
-        """
-        routines: list of dicts with keys:
-            - task: description of the activity
-            - time_slots: list of "HH:MM" strings
-            - duration_days: how many days the routine should last
-            - duration_minutes: estimated time spent doing the task
-            - category: type of routine (e.g., 'ice', 'exercise', etc.)
-        """
-        self.routine_items = routine_items
-        self.start_date = datetime.strptime(start_date, "%Y-%m-%d") if start_date else datetime.now()
-        self.schedule = []
+class RecoveryCheckUpScheduleManager:
+    def __init__(self, username):        
+        self.history_file = f"data/history_{username}.json"
+        self.routine_tracker_file = f"data/routineTracker_{username}.json"
 
+    def load_medical_record(self):
+        if not os.path.exists(self.history_file):
+            return []
+        with open(self.history_file, "r", encoding="utf-8") as f:
+            return json.load(f)
+        
+    def load_routine_tracker(self):
+        with open(self.routine_tracker_file, "r", encoding="utf-8") as f:
+            return json.load(f)
 
-    def create_routine_tracker_from_history(self, history_path, routine_tracker_path):
+    def save_routine_tracker(self, tracker):
+        with open(self.routine_tracker_file, "w", encoding="utf-8") as f:
+            json.dump(tracker, f, indent=2)
+    
+    def return_routine_info (self):
+        if os.path.exists(self.routine_tracker_file):
+            return self.load_routine_tracker()
+        else:
+            return self.create_routine_tracker_from_history()
+    
+    def create_routine_tracker_from_history(self):
+        data = self.load_medical_record()
+        surgery_date_str = data.get("surgery_date", None)
+        self.start_date = datetime.strptime(surgery_date_str, "%Y-%m-%d") if surgery_date_str else datetime.now()
         chat = GroqChat()
-        with open(history_path, "r", encoding="utf-8") as f:
-            data = json.load(f)
 
         routine_items = data.get("post_surgery_recommendations", {}).get("at_home", [])            
-        # Concatenar o formatear como texto para enviar a GPT
         routine_text = "\n".join(routine_items) if routine_items else ""
 
         surgery_date_str = data.get("surgery_date", datetime.now().strftime("%Y-%m-%d"))
         surgery_date = datetime.strptime(surgery_date_str, "%Y-%m-%d")
 
-        routine_schedule = []
+        routine_schedule_generated = []
         if routine_text:
             try:
-                # Si quieres, podrías modificar la función interpret_routine_with_gpt
-                # para que reciba también la fecha inicial y la incluya en el prompt.
                 routine_schedule_raw = chat.extract_routine_from_medical_record(routine_text, surgery_date)
                 routine_schedule_data = json.loads(routine_schedule_raw)
                 routine_schedule_generated = self.build_schedule_from_extracted_info(routine_schedule_data, surgery_date)
             except Exception as e:
                 print(f"Error interpreting routine schedule: {e}")
-                # fallback o rutina vacía
                 routine_schedule_generated = []
         else:
             print("No routine text found in medical record.")
-
-        with open(routine_tracker_path, "w", encoding="utf-8") as f:
-            json.dump(routine_schedule_generated, f, indent=2)
-
+        self.save_routine_tracker(routine_schedule_generated)       
         return routine_schedule_generated
 
     def build_schedule_from_extracted_info(self, info_list, surgery_date):
@@ -84,6 +89,9 @@ class RoutineScheduleManager:
                         })
 
         return all_schedules
+
+
+
 
     def mark_as_completed(self, task, date_str, time_str):
         """

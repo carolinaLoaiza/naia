@@ -30,7 +30,10 @@ def classify_intent(state: dict) -> str:
     Your task is to classify the user's message into one of these agents:
     
     - "symptom_agent": if the user is describing physical symptoms (e.g., "I have pain", "I'm nauseous", "It hurts")
-    - "reminder_agent": if the user is asking to check, create, or confirm medication or appointment reminders (e.g., "Did I take my ibuprofen?", "Remind me at 9", "What meds are due?")
+    - "reminder_agent": if the user asks to check, create, confirm, or modify any type of reminder. This includes:
+        - Medication reminders (e.g., "Did I take my ibuprofen?")
+        - Appointment reminders (e.g., "When is my next follow-up?")
+        - Recovery task reminders (e.g., "What stretches do I need to do today?", "When should I apply ice?")
     - "medical_record_agent": if the user is asking about general medical history like allergies, past prescriptions, surgeries, or lab results
     - "recommendation_agent": if the user wants medical advice or next steps (e.g., "what should I do?", "is this normal?", "should I go to the hospital?")
     - "chat_agent": if the user is being friendly or casual (e.g., "how are you?", "what's your name?")
@@ -60,7 +63,3 @@ def classify_intent(state: dict) -> str:
     print("Routing to:", result)  # <-- esto
     return result.strip().lower()
 
-
-#    - "health_agent": if the user mentions symptoms, pain, discomfort, or medical questions
-#    - "reminder_agent": if the user wants to set or check reminders, appointments, or medication schedules
-#    - "chat_agent": if it's a general conversation or question not related to health or reminders

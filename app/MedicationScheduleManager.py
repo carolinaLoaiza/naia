@@ -1,121 +1,105 @@
 from datetime import datetime, timedelta
+import json
+import os
+from datetime import datetime, timedelta, time
 
 class MedicationScheduleManager:
-    def __init__(self, medications, start_date=None):
-        """
-        medications: list of dicts with keys: name, dose, frequency, duration
-        start_date: date from which the medication starts, in "YYYY-MM-DD" format
-        """
-        self.medications = medications
-        self.start_date = datetime.strptime(start_date, "%Y-%m-%d") if start_date else datetime.now()
-        self.schedule = []
+    
+    def __init__(self, username):
+        self.history_file = f"data/history_{username}.json"
+        self.tracker_file = f"data/medicationTracker_{username}.json"
 
-    def _parse_frequency(self, freq):
-        """
-        Converts the frequency in a list of hours of the day (24h) for doses.
-        Supports some common formats.
-        """
-        freq = freq.lower()
-        doses_times = []
-
-        if freq == "as needed":
-            # no program fixed doses for 'as needed'
+    def load_tracker(self):
+        if not os.path.exists(self.tracker_file):
             return []
+        with open(self.tracker_file, "r", encoding="utf-8") as f:
+            return json.load(f)
 
-        if "every" in freq and "hours" in freq:
-            hours_interval = int(freq.split("every")[1].strip().split(" ")[0])
-            # doses every X hours starting at 8:00 AM for example
-            current_hour = 8
-            while current_hour < 24:
-                doses_times.append(current_hour)
-                current_hour += hours_interval
-        elif "x/day" in freq:
-            times_per_day = int(freq.split("x/day")[0].strip())
-            # distribute doses evenly between 8am and 10pm (14h)
-            interval = 14 / (times_per_day - 1) if times_per_day > 1 else 0
-            for i in range(times_per_day):
-                dose_hour = 8 + i * interval
-                doses_times.append(int(round(dose_hour)))
-        elif freq == "1x/day":
-            doses_times = [8]  # 8 AM by default
-        else:
-            # unrecognized frequency, no schedule
-            doses_times = []
+    def check_pending_medications(self, window_minutes=30):
+        now = datetime.now()
+        start = now - timedelta(minutes=window_minutes)
+        end = now + timedelta(minutes=window_minutes)
+        tracker = self.load_tracker()
+        upcoming = []
+        for med in tracker:
+            if med.get("taken"):
+                continue
+            dt_str = f"{med['date']} {med['time']}"
+            try:
+                dt = datetime.strptime(dt_str, "%Y-%m-%d %H:%M")
+                if start <= dt <= end:
+                    upcoming.append(f"- 💊 {med['med_name']} ({med['dose']}) a las {med['time']}")
+            except:
+                continue
+        return upcoming
+    
+    def mark_medication_as_taken(self, med_name):
+        tracker = self.load_tracker()
+        found = False
+        already_taken = False
+        for entry in tracker:
+            if entry["med_name"].lower() == med_name.lower():
+                if entry.get("taken"):
+                    already_taken = True
+                    continue
+                entry["taken"] = True
+                found = True
+                break
+        if found:
+            self.save_tracker(tracker)
+            return True, False
+        return False, already_taken
 
-        return doses_times
+    def load_medical_record(self):
+        if not os.path.exists(self.history_file):
+            return []
+        with open(self.history_file, "r", encoding="utf-8") as f:
+            return json.load(f)
+        
+    def save_tracker(self, tracker):
+        with open(self.tracker_file, "w", encoding="utf-8") as f:
+            json.dump(tracker, f, ensure_ascii=False, indent=2)
 
-    def generate_schedule(self):
-        """
-        Generates the dosing schedule for all medications.
-        For 'ongoing', generates only for 7 days by default.
-        """
-        schedule = []
-        for med in self.medications:
-            med_name = med["name"]
-            dose = med["dose"]
+
+    def create_tracker_from_history(self):
+        data = self.load_medical_record()
+        medications = data.get("medications", [])
+        surgery_date_str = data.get("surgery_date", None)
+        self.start_date = datetime.strptime(surgery_date_str, "%Y-%m-%d") if surgery_date_str else datetime.now()
+        frequency_schedule = {
+            "6x/day": [time(6, 0), time(10, 0), time(14, 0), time(18, 0), time(22, 0), time(2, 0)],
+            "5x/day": [time(7, 0), time(11, 0), time(15, 0), time(19, 0), time(23, 0)],
+            "4x/day": [time(8, 0), time(12, 0), time(16, 0), time(20, 0)],
+            "3x/day": [time(8, 0), time(14, 0), time(20, 00)],
+            "2x/day": [time(9, 0), time(21, 0)],
+            "1x/day": [time(9, 0)],
+        }
+        tracker = []
+        for med in medications:
+            duration_str = med.get("duration", "7 days")
+            days = int(duration_str.split()[0])
             freq = med.get("frequency", "").lower()
-            duration = med.get("duration", "").lower()
-
-            # Calculate number of days
-            if duration == "ongoing":
-                days = 7  # generates 7 days by default for ongoing
-            else:
-                try:
-                    days = int(duration.split()[0])  # assumes "5 days", takes 5
-                except Exception:
-                    days = 1  # by default 1 day if it can't be parsed
-
-            dosis_hours = self._parse_frequency(freq)
-
+            scheduled_times = frequency_schedule.get(freq, [time(9,0)])
             for day_offset in range(days):
                 day_date = self.start_date + timedelta(days=day_offset)
-                date_str = day_date.strftime("%Y-%m-%d")
-                for hour in dosis_hours:
-                    time_str = f"{hour:02d}:00"
-                    schedule.append({
-                        "date": date_str,
+                day_str = day_date.strftime("%Y-%m-%d")
+                for t in scheduled_times:
+                    time_str = t.strftime("%H:%M")
+                    tracker.append({
+                        "date": day_str,
                         "time": time_str,
-                        "med_name": med_name,
-                        "dose": dose,
+                        "med_name": med.get("name"),
+                        "dose": med.get("dose"),
+                        "frequency": med.get("frequency"),
                         "taken": False
                     })
+        self.save_tracker(tracker)
+        return tracker
 
-        self.schedule = schedule
-        return schedule
+    def return_medication_info (self):
+        if os.path.exists(self.tracker_file):
+            return self.load_tracker()
+        else:
+            return self.create_tracker_from_history()
 
-    def get_upcoming_doses(self, minutes_ahead=1):
-        """
-        Returns two lists:
-        - meds_now: meds to take at the current time (HH:MM)
-        - meds_soon: meds to take in 'minutes_ahead' minutes
-        """
-        now = datetime.now()
-        today_str = now.strftime("%Y-%m-%d")
-        current_time_str = now.strftime("%H:%M")
-        upcoming_time_str = (now + timedelta(minutes=minutes_ahead)).strftime("%H:%M")
 
-        meds_now = []
-        meds_soon = []
-
-        for entry in self.schedule:
-            if entry["date"] != today_str or entry["taken"]:
-                continue
-
-            if entry["time"] == current_time_str:
-                meds_now.append(entry)
-            elif entry["time"] == upcoming_time_str:
-                meds_soon.append(entry)
-
-        return meds_now, meds_soon
-
-    def mark_as_taken(self, med_name, date_str, time_str):
-        """
-        Marks a specific medication dose as taken
-        """
-        for entry in self.schedule:
-            if (entry["med_name"] == med_name and
-                entry["date"] == date_str and
-                entry["time"] == time_str):
-                entry["taken"] = True
-                return True
-        return False

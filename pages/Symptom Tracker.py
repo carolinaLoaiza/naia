@@ -8,7 +8,7 @@ from app.SymptomManager import SymptomManager
 if "page_config_set" not in st.session_state:
     st.set_page_config(
         page_title="NAIA assistant",
-        page_icon="assets/nurse.png",
+        page_icon="assets/Naia window icon.png",
         layout="wide",
         initial_sidebar_state="expanded"
     )

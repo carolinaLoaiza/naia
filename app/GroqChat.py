@@ -221,39 +221,33 @@ class GroqChat:
         return response 
     
 
-    def interpret_routine_from_medical_record(self, routine_text, surgery_date):
+    def extract_followups_from_medical_record(self, followup_list):
         prompt = f"""
-            You are a helpful assistant. Given this surgery date: {surgery_date},
-            Please convert this routine description into a structured schedule
-            of activities with dates, times, and duration for each item:
-            {routine_text}
+            You are a clinical assistant. Extract detailed follow-up appointment information from the given entries.
 
-            Please provide ONLY the JSON array representing the routine schedule.
-            Do NOT include any explanations or extra text.
-            Return ONLY ONE raw JSON object. No Markdown, no comments, no extra text.
-            Return a JSON formatted as:
-            - routines: array of objects with fields:
-                - activity (string)
-                - date (string)
-                - tima (string)
-                - duration_minutes (integer or null)
-                - completed 
-            Respond with JSON only.
-           
-            """
+            The input is a list of follow-up appointments as found in a patient’s medical record. Some fields may be missing or inconsistent.
+
+            Your task:
+            - For **each** appointment, output a standardized object with the following fields:
+                - date: in YYYY-MM-DD format
+                - time: in HH:MM (24-hour format)
+                - department
+                - location
+                - clinician: name of doctor or specialist
+                - reason: short reason for the visit
+                - reminder_sent: true/false
+                - attended: true/false
+                - notes: optional string ("" if none)
+
+            Instructions:
+            - Do NOT exclude any appointment, even if some values are missing or empty.
+            - Only output a JSON array of cleaned appointments. No Markdown, no explanations, no formatting.
+
+            Follow-up entries:
+            {json.dumps(followup_list, indent=2)}
+            """          
         response = self.classifier_llm.invoke(prompt).content.strip()
-        print("response " , response)
-        try:
-            parsed = json.loads(response)
-            routine_list =  parsed["routines"]
-
-            for item in routine_list:
-                item["completed"] = item.get("completed", False)
-
-            return routine_list
-        except Exception as e:
-            print("❌ Error parsing routine schedule:", e)
-            return []
+        return response
 
 
 

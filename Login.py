@@ -5,7 +5,7 @@ from yaml.loader import SafeLoader
 
 st.set_page_config(
     page_title="NAIA - Login",
-    page_icon="assets/nurse.png",
+    page_icon="assets/Naia window icon.png",
     layout="centered",
     initial_sidebar_state="collapsed"  # o "collapsed"
 )
@@ -31,16 +31,17 @@ if st.session_state['authentication_status']:
     page = st.navigation([
         "pages/Home.py",
         "pages/Chat.py",
-        "pages/Symptoms.py",
-        "pages/Medication.py",
-        "pages/Routine.py",
-        "pages/FAQ.py"])  # Parámetro nombrado
-    authenticator.logout("Log Out", "sidebar")  # Al final
+        "pages/Symptom Tracker.py",
+        "pages/Medications.py",
+        "pages/Recovery Check Ups.py",
+        "pages/Follow-Up Appointments.py",
+        "pages/FAQ.py"])  
+    authenticator.logout("Log Out", "sidebar")  
     page.run()
     st.markdown("""
         <style>
             [data-testid=stSidebar] {
-                background-color: #ffa568;
+                background-color: #ffcfa1;
                 /* Opcional: padding, border-radius, etc */
             }
             [data-testid=stSidebarNavItems] * {
@@ -56,3 +57,4 @@ elif st.session_state['authentication_status'] is False:
     st.error('Username/password is incorrect')
 elif st.session_state['authentication_status'] is None:
     st.warning('Please enter your username and password')
+
