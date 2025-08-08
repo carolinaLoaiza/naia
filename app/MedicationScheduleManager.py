@@ -33,7 +33,7 @@ class MedicationScheduleManager:
                 continue
         return upcoming
     
-    def mark_medication_as_taken(self, med_name):
+    def mark_medication_as_taken_deprecated(self, med_name):
         tracker = self.load_tracker()
         found = False
         already_taken = False
@@ -49,6 +49,39 @@ class MedicationScheduleManager:
             self.save_tracker(tracker)
             return True, False
         return False, already_taken
+
+    def mark_medication_as_taken(self, user_input: str):
+        tracker = self.load_tracker()
+        if not tracker:
+            return None, None
+        now = datetime.now()
+        today_str = now.strftime("%Y-%m-%d")
+        window_minutes = 30
+        meds_today = []
+        # Filtrar medicinas de hoy que no estén tomadas y dentro de la ventana temporal
+        for entry in tracker:
+            if entry.get("date") != today_str or entry.get("taken"):
+                continue
+            try:
+                med_time = datetime.strptime(f"{entry['date']} {entry['time']}", "%Y-%m-%d %H:%M")
+            except:
+                continue
+            if abs((med_time - now).total_seconds()) <= window_minutes * 60:
+                meds_today.append(entry)
+        if not meds_today:
+            return None, None
+        # Buscar en meds_today la medicina cuyo nombre esté en user_input (ignorar mayúsculas)
+        user_input_lower = user_input.lower()
+        for med in meds_today:
+            if med["med_name"].lower() in user_input_lower:
+                if med.get("taken"):
+                    return None, True
+                med["taken"] = True
+                self.save_tracker(tracker)
+                return med["med_name"], False
+        # Si no encontró ninguna coincidencia en la ventana temporal
+        return None, False
+
 
     def load_medical_record(self):
         if not os.path.exists(self.history_file):

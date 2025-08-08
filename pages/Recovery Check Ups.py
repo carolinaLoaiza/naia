@@ -32,14 +32,40 @@ if not routine_tracker:
     st.stop()
 
 df = pd.DataFrame(routine_tracker)
-df["datetime"] = pd.to_datetime(df["date"] + " " + df["time"])
+# Filtrar actividades ongoing y programadas
+ongoing_df = df[df["is_ongoing"] == True].copy()
+scheduled_df = df[df["is_ongoing"] != True].copy()
+
+scheduled_df["datetime"] = pd.to_datetime(scheduled_df["date"] + " " + scheduled_df["time"])
+
+if not ongoing_df.empty:
+    with st.expander("📝 Ongoing Recommendations (No specific schedule)", expanded=True):
+        for _, row in ongoing_df.iterrows():
+            extra_info = []
+            # Condicionales para añadir info si existe y es relevante
+            if row.get("total_days"):
+                extra_info.append(f"**Days:** {row['total_days']}")
+            if row.get("frequency_per_day"):
+                extra_info.append(f"**Frequency/day:** {row['frequency_per_day']}")
+            if row.get("duration_minutes"):
+                extra_info.append(f"**Duration:** {row['duration_minutes']} min")
+            if row.get("preferred_times"):
+                times = ", ".join(row["preferred_times"])
+                extra_info.append(f"**Preferred times:** {times}")
+            # Construcción del texto final
+            details = " | ".join(extra_info)
+            notes = row.get("notes", "")
+            st.markdown(f"- **{row['activity']}**: {notes}{'  \n' + details if details else ''}")
 
 today = datetime.now().date()
-past_df = df[df["datetime"].dt.date < today].copy()
-future_df = df[df["datetime"].dt.date >= today].copy()
+past_df = scheduled_df[scheduled_df["datetime"].dt.date < today].copy()
+future_df = scheduled_df[scheduled_df["datetime"].dt.date >= today].copy()
+
+columns_to_exclude = ["is_ongoing", "total_days", "preferred_times", "frequency"]
+future_df = future_df.drop(columns=[col for col in columns_to_exclude if col in future_df.columns], errors="ignore")
 
 past_df["completed_status"] = past_df["completed"].apply(lambda x: "✅" if x else "❌")
-past_df_display = past_df[["date", "time", "activity", "duration_minutes", "completed_status"]]
+past_df_display = past_df[["activity", "date", "time", "duration_minutes", "completed_status"]]
 
 st.subheader("Today's and Upcoming Routine Tasks")
 if future_df.empty:
@@ -59,7 +85,9 @@ else:
         allow_unsafe_jscode=True,
         theme="balham",
         height=400,
-        fit_columns_on_grid_load=True,
+        fit_columns_on_grid_load=False,  # 👈 Esto evita que las columnas se aplasten para caber
+        width='100%'
+        # fit_columns_on_grid_load=True,
     )
 
     updated_df = grid_response["data"]

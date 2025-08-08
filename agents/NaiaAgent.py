@@ -30,27 +30,28 @@ def classify_intent(state: dict) -> str:
     Your task is to classify the user's message into one of these agents:
     
     - "symptom_agent": if the user is describing physical symptoms (e.g., "I have pain", "I'm nauseous", "It hurts")
-    - "reminder_agent": if the user asks to check, create, confirm, or modify any type of reminder. This includes:
-        - Medication reminders (e.g., "Did I take my ibuprofen?")
-        - Appointment reminders (e.g., "When is my next follow-up?")
-        - Recovery task reminders (e.g., "What stretches do I need to do today?", "When should I apply ice?")
+    - "reminder_medication_agent": if the user asks to check, create, confirm, or modify any medication reminders (e.g., "Did I take my ibuprofen?", "Remind me to take my pills")
+    - "reminder_recovery_agent": if the user asks to check, create, confirm, or modify any recovery task reminders (e.g., "What stretches do I need to do today?", "When should I apply ice?")
     - "medical_record_agent": if the user is asking about general medical history like allergies, past prescriptions, surgeries, or lab results
     - "recommendation_agent": if the user wants medical advice or next steps (e.g., "what should I do?", "is this normal?", "should I go to the hospital?")
     - "chat_agent": if the user is being friendly or casual (e.g., "how are you?", "what's your name?")
 
     If MULTIPLE categories seem relevant, follow this priority:
     1. symptom_agent  
-    2. reminder_agent  
-    3. medical_record_agent  
-    4. recommendation_agent  
-    5. chat_agent
+    2. reminder_medication_agent
+    3. reminder_recovery_agent
+    4. medical_record_agent  
+    5. recommendation_agent  
+    6. chat_agent
 
-    Respond with ONLY one of: symptom_agent, reminder_agent, medical_record_agent, recommendation_agent, chat_agent
+    Respond with ONLY one of: symptom_agent, reminder_medication_agent, reminder_recovery_agent, medical_record_agent, recommendation_agent, chat_agent
 
     Examples:
     - "I have pain in my leg" → symptom_agent
-    - "Remind me to take my pills at 8pm" → reminder_agent
-    - "Did I take my ibuprofen?" → reminder_agent
+    - "Remind me to take my pills at 8pm" → reminder_medication_agent
+    - "Did I take my ibuprofen?" → reminder_medication_agent
+    - "What stretches do I need to do today?" → reminder_recovery_agent
+    - "When should I apply ice?" → reminder_recovery_agent
     - "What were my last test results?" → medical_record_agent
     - "Do I have any allergies?" → medical_record_agent
     - "Should I go to the ER?" → recommendation_agent

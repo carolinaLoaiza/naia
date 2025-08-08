@@ -1,5 +1,5 @@
 import json
-from datetime import datetime
+from datetime import datetime, timedelta
 import os
 from app.GroqChat import GroqChat
 
@@ -55,6 +55,58 @@ class AppointmentManager:
         self.save_appointment_tracker(parsed)
         self.appointments = parsed
         return parsed
+
+    def check_upcoming_appointments(self, window_hours=24):
+        now = datetime.now()
+        start = now
+        end = now + timedelta(hours=window_hours)
+        tracker = self.load_appointment_tracker()
+        upcoming = []
+        for appt in tracker:
+            if appt.get("completed"):  # si quieres omitir citas ya completadas
+                continue
+            dt_str = f"{appt['date']} {appt.get('time', '09:00')}"  # si no hay hora, asumimos 9 AM
+            try:
+                dt = datetime.strptime(dt_str, "%Y-%m-%d %H:%M")
+                if start <= dt <= end:                    
+                    location_info = f" at {appt['location']}" if appt.get("location") else ""
+                    reason = appt.get("reason", "")
+                    department = appt.get("department", "")
+                    clinician = appt.get("clinician", "")
+                    if reason:
+                        description = reason
+                    elif department or clinician:
+                        description = f"{department} with {clinician}".strip()
+                    else:
+                        description = "Medical appointment"
+                    upcoming.append(f"- 📅 {description}{location_info} on {appt['date']} at {dt.strftime('%H:%M')}")    
+            except Exception as e:
+                continue
+        return upcoming
+
+
+    def mark_appointment_as_completed(self, description):
+        tracker = self.load_appointment_tracker()
+        found = False
+        already_completed = False
+
+        for appt in tracker:
+            if appt["description"].lower() == description.lower():
+                if appt.get("completed"):
+                    already_completed = True
+                    continue
+                appt["completed"] = True
+                found = True
+                break
+
+        if found:
+            self.save_appointment_tracker(tracker)
+            return True, False  # (marcada, ya estaba completada=False)
+        return False, already_completed
+
+
+
+
 
     def mark_as_attended(self, date_str, time_str):
         for entry in self.appointments:

@@ -163,6 +163,32 @@ class GroqChat:
         response = self.chat_llm.invoke([HumanMessage(content=prompt)]).content.strip()
         return response
     
+    def answer_recovery_question(self, user_input: str, recovery_data: list) -> str:
+        # Formatea el JSON como string para que el modelo lo procese
+        recovery_json_str = json.dumps(recovery_data, indent=2)
+
+        prompt = f"""
+        You are a helpful assistant that helps users manage their post-surgery recovery tasks and schedules.
+
+        Here is the user's recovery routine tracker in JSON format:
+
+        ```json
+        {recovery_json_str}
+        ```
+
+        Based on this data, answer the user's question below in a clear and helpful tone.
+        If a recovery task is scheduled soon, remind the user.
+        If no tasks are pending soon, let them know.
+        If the data is incomplete, be honest about it.
+
+        User question: "{user_input}"
+
+        Respond in a concise, friendly tone.
+        """
+
+        response = self.chat_llm.invoke([HumanMessage(content=prompt)]).content.strip()
+        return response
+
     def extract_taken_medication(self, user_input: str) -> str:
         prompt = f"""
         The user may be confirming that they have taken a medication.
@@ -177,6 +203,33 @@ class GroqChat:
         response = self.classifier_llm.invoke([HumanMessage(content=prompt)]).content.strip()
         return response.lower()
 
+    def extract_completed_recovery_task(self, user_input: str) -> str:
+        prompt = f"""
+        The user may be confirming that they have completed a recovery task.
+
+        Your task is to extract ONLY the name of the recovery task they say they have done.
+        If no recovery task is clearly mentioned, respond with "none".
+
+        Respond with the exact recovery task name or "none".
+
+        User: "{user_input}"
+        """
+        response = self.classifier_llm.invoke([HumanMessage(content=prompt)]).content.strip()
+        return response.lower()
+    
+    def is_recovery_related(self, user_input, tracker):
+        prompt = f"""
+        Given the user's input and the list of scheduled recovery tasks, 
+        determine if the input is related to recovery tasks or recovery care.
+
+        Recovery tasks: {json.dumps(tracker)}
+
+        User input: "{user_input}"
+
+        Respond ONLY with "yes" or "no".
+        """
+        response = self.classifier_llm.invoke([HumanMessage(content=prompt)]).content.strip().lower()
+        return response == "yes"
 
     def extract_routine_from_medical_record(self, routine_text, surgery_date):
         prompt = f"""
@@ -221,7 +274,7 @@ class GroqChat:
         return response 
     
 
-    def extract_followups_from_medical_record(self, followup_list):
+    def extract_followups_from_medical_record (self, followup_list):
         prompt = f"""
             You are a clinical assistant. Extract detailed follow-up appointment information from the given entries.
 
@@ -249,5 +302,19 @@ class GroqChat:
         response = self.classifier_llm.invoke(prompt).content.strip()
         return response
 
+    def search_for_tasks_to_mark(self, tasks_str: str, user_input: str) -> str:
+        prompt = f"""
+        These are the recovery tasks scheduled for today near the current time:
+        {tasks_str}
+
+        The user said: "{user_input}"
+
+        Your task:
+        - Identify which task number from the list above best matches what the user is saying they have completed.
+        - If none match, respond with "none".
+        - Respond with ONLY the task number or "none".
+        """
+        response = self.classifier_llm.invoke(prompt).content.strip().lower()
+        return response
 
 

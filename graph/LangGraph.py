@@ -1,7 +1,8 @@
 from langgraph.graph import StateGraph
 from agents.NaiaAgent import classify_intent
 
-from agents.ReminderAgent import handle_reminder_query
+from agents.ReminderAgent import handle_reminder_medication_query
+from agents.ReminderAgent import handle_reminder_recovery_query
 from agents.ChatAgent import handle_chat
 from agents.SymptomAgent import handle_symptom_query
 from agents.MedicalRecordAgent import handle_medical_record_query
@@ -10,6 +11,8 @@ from typing import TypedDict
 from agents.AgentState import AgentState
 
 from app.MedicationScheduleManager import MedicationScheduleManager
+from app.RecoveryCheckUpScheduleManager import RecoveryCheckUpScheduleManager
+from app.AppointmentManager import AppointmentManager
     
 # the node acts as a router: should be declared before the nodes it routes to
 def router_node(state: AgentState) -> AgentState:
@@ -29,7 +32,8 @@ def build_graph():
     builder.add_node("symptom_agent", handle_symptom_query)
     builder.add_node("recommendation_agent", handle_recommendation_query)
     builder.add_node("medical_record_agent", handle_medical_record_query)
-    builder.add_node("reminder_agent", handle_reminder_query)
+    builder.add_node("reminder_medication_agent", handle_reminder_medication_query)
+    builder.add_node("reminder_recovery_agent", handle_reminder_recovery_query)
     builder.add_node("chat_agent", handle_chat)
 
     # The conditional decision comes from the router
@@ -45,54 +49,32 @@ def build_graph():
     builder.set_finish_point("symptom_agent")
     builder.set_finish_point("medical_record_agent")
     builder.set_finish_point("recommendation_agent")
-    builder.set_finish_point("reminder_agent")
+    builder.set_finish_point("reminder_medication_agent")
+    builder.set_finish_point("reminder_recovery_agent")
     builder.set_finish_point("chat_agent")
 
     return builder.compile()
 
 def check_reminder_node(state: AgentState) -> AgentState:
-    
-    # from agents.AppointmentAgent import load_appointments, check_pending_appointments
-    # from agents.RoutineAgent import load_routines, check_pending_routines
     username = state.get("username")
     reminder_msg = ""
-    medicationScheduleManager = MedicationScheduleManager(username)
-
+    
     # Medication reminders
+    medicationScheduleManager = MedicationScheduleManager(username)
     upcoming_medicines = medicationScheduleManager.check_pending_medications()
     if upcoming_medicines:
         reminder_msg = "💊 **Reminder**:\n" + "\n".join(upcoming_medicines) + "\n\n"
-
-
-    # Appointments reminders
-
     # Recovery reminders
+    recoveryCheckUpScheduleManager = RecoveryCheckUpScheduleManager(username)
+    upcoming_check_ups = recoveryCheckUpScheduleManager.check_pending_routines()
+    if upcoming_check_ups:
+        reminder_msg += "🧘 **Recovery Tasks Due**:\n" + "\n".join(upcoming_check_ups) + "\n\n"
+    # Appointments reminders
+    appointmentManager = AppointmentManager(username)
+    upcoming_appointments = appointmentManager.check_upcoming_appointments()
+    if upcoming_appointments:
+        reminder_msg += "📅 **Appointment Tomorrow**:\n" + "\n".join(upcoming_appointments) + "\n\n"
 
     state["reminder"] = reminder_msg
     return state
 
-
-    # from agents.ReminderAgent import load_tracker, check_pending_medications
-
-
-    # username = state.get("username")
-    # reminder_msg = ""
-
-    # # 💊 Medication
-    # med_tracker = load_tracker(username)
-    # meds = check_pending_medications(med_tracker)
-    # if meds:
-    #     reminder_msg += "💊 **Medication Reminder**:\n" + "\n".join(meds) + "\n\n"
-
-    # # 📅 Appointments
-    # appts = check_pending_appointments(username)
-    # if appts:
-    #     reminder_msg += "📅 **Appointment Today**:\n" + "\n".join(appts) + "\n\n"
-
-    # # 🧘 Recovery routines
-    # routines = check_pending_routines(username)
-    # if routines:
-    #     reminder_msg += "🧘 **Recovery Tasks Due**:\n" + "\n".join(routines) + "\n\n"
-
-    # state["reminder"] = reminder_msg
-    # return state
