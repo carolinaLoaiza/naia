@@ -68,7 +68,7 @@ client = OpenAI(api_key=openai_api_key)
 if "page_config_set" not in st.session_state:
     st.set_page_config(
         page_title="NAIA assistant",
-        page_icon="assets/nurse.png",
+        page_icon="assets/Naia window icon.png",
         layout="wide",
         initial_sidebar_state="expanded"
     )
@@ -162,8 +162,12 @@ if response:
             elif isinstance(msg, AIMessage):
                 messages.append(groqChat.ai_message(msg.content))
 
-        #assistant_reply = groqChat.get_response(messages)
-        agent_state = {"input": user_text, "output": ""}
+        agent_state = {
+            "input": user_text,
+            "output": "",
+            "username": username,
+            "reminder": ""
+        }
         final_state = st.session_state.agent_graph.invoke(agent_state)
         assistant_reply = final_state["output"]
 

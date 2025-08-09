@@ -138,3 +138,325 @@ class GroqChat:
         """
         response = self.classifier_llm.invoke([HumanMessage(content=prompt)]).content.strip()
         return response.lower()
+    
+    def answer_medication_question(self, user_input: str, medication_data: list) -> str:
+        # Formatea el JSON como string para que el modelo lo procese
+        medication_json_str = json.dumps(medication_data, indent=2)
+
+        prompt = f"""
+        You are a helpful assistant that helps users manage their medication schedules after surgery.
+
+        Here is the user's medication tracker in JSON format:
+
+        ```json
+        {medication_json_str}
+        ```
+
+        Based on this data, answer the user's question below in a clear and helpful tone. If a medication is due soon, remind the user.
+        If no medication is due, let them know. If the data is incomplete, be honest about it.
+
+        User question: "{user_input}"
+
+        Respond in a concise, friendly tone.
+        """
+
+        response = self.chat_llm.invoke([HumanMessage(content=prompt)]).content.strip()
+        return response
+    
+    def answer_recovery_question(self, user_input: str, recovery_data: list) -> str:
+        # Formatea el JSON como string para que el modelo lo procese
+        recovery_json_str = json.dumps(recovery_data, indent=2)
+
+        prompt = f"""
+        You are a helpful assistant that helps users manage their post-surgery recovery tasks and schedules.
+
+        Here is the user's recovery routine tracker in JSON format:
+
+        ```json
+        {recovery_json_str}
+        ```
+
+        Based on this data, answer the user's question below in a clear and helpful tone.
+        If a recovery task is scheduled soon, remind the user.
+        If no tasks are pending soon, let them know.
+        If the data is incomplete, be honest about it.
+
+        User question: "{user_input}"
+
+        Respond in a concise, friendly tone.
+        """
+
+        response = self.chat_llm.invoke([HumanMessage(content=prompt)]).content.strip()
+        return response
+
+    def extract_taken_medication(self, user_input: str) -> str:
+        prompt = f"""
+        The user may be confirming that they have taken a medication.
+
+        Your task is to extract ONLY the name of the medication they say they have taken.
+        If no medication is clearly mentioned, respond with "none".
+
+        Respond with the exact medication name or "none".
+
+        User: "{user_input}"
+        """
+        response = self.classifier_llm.invoke([HumanMessage(content=prompt)]).content.strip()
+        return response.lower()
+
+    def extract_completed_recovery_task(self, user_input: str) -> str:
+        prompt = f"""
+        The user may be confirming that they have completed a recovery task.
+
+        Your task is to extract ONLY the name of the recovery task they say they have done.
+        If no recovery task is clearly mentioned, respond with "none".
+
+        Respond with the exact recovery task name or "none".
+
+        User: "{user_input}"
+        """
+        response = self.classifier_llm.invoke([HumanMessage(content=prompt)]).content.strip()
+        return response.lower()
+    
+    def is_recovery_related(self, user_input, tracker):
+        prompt = f"""
+        Given the user's input and the list of scheduled recovery tasks, 
+        determine if the input is related to recovery tasks or recovery care.
+
+        Recovery tasks: {json.dumps(tracker)}
+
+        User input: "{user_input}"
+
+        Respond ONLY with "yes" or "no".
+        """
+        response = self.classifier_llm.invoke([HumanMessage(content=prompt)]).content.strip().lower()
+        return response == "yes"
+
+    def extract_routine_from_medical_record(self, routine_text, surgery_date):
+        prompt = f"""
+            You are a routine extraction assistant for post-surgical care.
+
+            Given the following doctor's instruction: {routine_text}
+            Given this surgery date: {surgery_date},
+            
+            Please extract ONLY the post-surgical routine activities that specify at least two of three of the following clearly or implicitly:
+            - frequency_per_day (times per day, integer greater than zero),
+            - duration_minutes (minutes per session, integer greater than zero),
+            - total_days (total number of days, integer greater than zero).
+
+            If an instruction lacks two or more of these, exclude it completely from the output.
+
+            Please provide ONLY the JSON array representing the routine schedule.
+            Do NOT include any explanations or extra text.
+            Return ONLY ONE raw JSON object. No Markdown, no comments, no extra text.
+            Return a JSON formatted as:
+
+            Instructions:
+            - Convert all frequency expressions like "every 4 hours", "every 3 hours", etc. into explicit time values starting from 06:00.
+            - For example, "every 4 hours" should become ["06:00", "10:00", "14:00", "18:00", "22:00"].
+            - Always provide explicit time slots as a list of HH:MM strings in 24-hour format.
+            - Do NOT include phrases like "every 4 hours" or "as needed" as time values.
+            - Ignore any instructions that do not specify frequency, duration per session, and total number of days explicitly or implicitly.
+            - Recommendations that only provide general advice without schedule details should be excluded.
+
+            Extract the following fields as JSON:
+            - activity: short name of the activity (e.g., "Apply ice to the knee")
+            - frequency_per_day: how many times per day (integer)
+            - duration_minutes: how long each session lasts (in minutes)
+            - total_days: for how many days (integer)
+            - start_offset_days: when to start (0 = same day as surgery, 1 = one day after, etc.)
+            - preferred_times: list of time strings (["09:00", "15:00"]) or empty if not specified
+            - notes: optional clarifications
+
+            Return ONLY ONE valid JSON object. Do not include explanations or formatting.
+                       
+            """
+        response = self.classifier_llm.invoke(prompt).content.strip()
+        return response 
+    
+
+    def extract_followups_from_medical_record (self, followup_list):
+        prompt = f"""
+            You are a clinical assistant. Extract detailed follow-up appointment information from the given entries.
+
+            The input is a list of follow-up appointments as found in a patient’s medical record. Some fields may be missing or inconsistent.
+
+            Your task:
+            - For **each** appointment, output a standardized object with the following fields:
+                - date: in YYYY-MM-DD format
+                - time: in HH:MM (24-hour format)
+                - department
+                - location
+                - clinician: name of doctor or specialist
+                - reason: short reason for the visit
+                - reminder_sent: true/false
+                - attended: true/false
+                - notes: optional string ("" if none)
+
+            Instructions:
+            - Do NOT exclude any appointment, even if some values are missing or empty.
+            - Only output a JSON array of cleaned appointments. No Markdown, no explanations, no formatting.
+
+            Follow-up entries:
+            {json.dumps(followup_list, indent=2)}
+            """          
+        response = self.classifier_llm.invoke(prompt).content.strip()
+        return response
+
+    def search_for_tasks_to_mark(self, tasks_str: str, user_input: str) -> str:
+        prompt = f"""
+        These are the recovery tasks scheduled for today near the current time:
+        {tasks_str}
+
+        The user said: "{user_input}"
+
+        Your task:
+        - Identify which task number from the list above best matches what the user is saying they have completed.
+        - If none match, respond with "none".
+        - Respond with ONLY the task number or "none".
+        """
+        response = self.classifier_llm.invoke(prompt).content.strip().lower()
+        return response
+
+    def find_reminder_mentioned(self, user_input, all_reminders):
+        unique_tasks = {}
+        for reminder in all_reminders:
+            name = reminder["activity"].lower()
+            reminder_type = "personal" if reminder.get("created_by_patient", False) else "doctor"
+            if name not in unique_tasks:
+                unique_tasks[name] = {
+                    "activity": reminder["activity"],
+                    "type": reminder_type
+                }
+        task_list = [f"{data['activity']} ({data['type']})" for data in unique_tasks.values()]
+        task_list_str = "\n".join(f"- {data['activity']} ({data['type']})" for data in unique_tasks.values())
+
+        print("task_list " , task_list)
+        prompt = f"""
+            You are a reminder intent classification assistant.
+
+            Here is a list of existing reminders with their types:
+            {task_list_str}
+
+            User message: "{user_input}"
+
+            Task:
+            - Determine the user's intent regarding reminders.
+            - There are exactly four possible outcomes:
+
+            1. "consult_existing" → The user wants to check, view, or ask about an existing reminders.
+            2. "mark_done_existing" → The user wants to mark an existing reminder as done/completed.
+            3. "reminder_crud" → The user wants to create, modify, or delete a reminder.
+            4. "none" → The message is unrelated to reminders.
+
+            Rules:
+            - If the message contains words like "create", "add", "new", or "set up", assume the action is "reminder_crud".
+            - If the reminder name mentioned is in the list, return the action type above plus the exact reminder name in the format: ACTION|REMINDER_NAME.
+            - If the reminder name is not in the list and the action is "reminder_crud", respond with: ACTION|new for a new reminder creation.
+            - If the message has nothing to do with reminders, respond ONLY with: none.
+            - Do not explain your answer, just output the exact required format.
+
+            Examples:
+            - consult_existing|Take vitamins
+            - mark_done_existing|Morning exercise
+            - reminder_crud|Buy milk
+            - reminder_crud|new  - for messages like "create a new reminder
+            - none
+            """
+        
+        result = self.classifier_llm.invoke(prompt).content.strip()
+        print ("result------------ ", result)
+        return result
+    
+    def get_reminder_information(self, user_input, all_reminders):
+        unique_tasks = {}
+        for reminder in all_reminders:
+            name = reminder["activity"].lower()
+            reminder_type = reminder["type"]
+            if name not in unique_tasks:
+                unique_tasks[name] = {
+                    "activity": reminder["activity"],
+                    "type": reminder_type
+                }
+            task_lines = [f"- {data['activity']} ({data['type']})" for data in unique_tasks.values()]
+            tasks_text = "\n".join(task_lines)
+            prompt = f"""
+               You are a reminder matching assistant.
+
+                Here is the list of existing reminders with their type:
+                {tasks_text}
+
+                User message:
+                "{user_input}"
+
+                Task:
+                - Check if the reminder activity mentioned in the user's message refers to one in the list above.
+                - Consider it a match even if:
+                    * Case (upper/lower) is different.
+                    * There are plural/singular variations.
+                    * There are extra words like "the", "reminder", "task", "my", etc.
+                    * There are action verbs like "delete", "remove", "mark", "complete", etc.
+                - If the meaning clearly refers to one existing activity, output ONLY: YES|TYPE (TYPE is "personal" or "doctor").
+                - If it does not refer to any activity in the list, output ONLY: NO.
+                - No explanations. No extra text. No formatting.
+                """
+        result = self.classifier_llm.invoke(prompt).content.strip().upper()
+        print("Match result:", result)
+        print ("_________________________________")
+        return result
+
+    def get_new_reminder(self, user_input, all_reminders):
+        unique_tasks = {}
+        for reminder in all_reminders:
+            name = reminder["activity"].lower()
+            reminder_type = reminder["type"]
+            if name not in unique_tasks:
+                unique_tasks[name] = {
+                    "activity": reminder["activity"],
+                    "type": reminder_type
+                }
+
+            prompt = f"""
+               You are a reminder matching assistant.
+
+                Here is the list of existing reminders with their type:
+                {unique_tasks}
+
+                User message:
+                "{user_input}"
+
+                Task:
+                - Check if the reminder activity mentioned in the user's message refers to one in the list above.
+                - Consider it a match even if:
+                    * Case (upper/lower) is different.
+                    * There are plural/singular variations.
+                    * There are extra words like "the", "reminder", "task", "my", etc.
+                    * There are action verbs like "delete", "remove", "mark", "complete", etc.
+                - If the meaning clearly refers to one existing activity, output ONLY: YES|TYPE (TYPE is "personal" or "doctor").
+                - If it does not refer to any activity in the list, output ONLY: NO|.
+                - No explanations. No extra text. No formatting.
+                """
+        result = self.classifier_llm.invoke(prompt).content.strip().upper()
+        print("Match result:", result)
+        print ("_________________________________")
+        return result
+    
+    def extract_reminder_info_simple(self, user_input):
+        prompt = f"""
+            You are an assistant that extracts reminder details from a user's message.
+
+            Given the user's message below, extract the following fields:
+            - activity: the main task or reminder activity mentioned.
+            - time: the time related to the reminder (if mentioned, else null).
+            - frequency: how often the reminder happens (e.g., daily, every 2 days), if mentioned (else null).
+            - period: the duration or status of the reminder (e.g., q month, 1 week, 15 days), if not mentioned (ongoing).
+
+            Return ONLY a JSON object with these keys and values. Use null if a field is not specified.
+
+            User message:
+            \"\"\"{user_input}\"\"\"
+
+            Respond ONLY with the JSON object. No extra text or explanation.
+        """
+        response = self.classifier_llm.invoke(prompt).content.strip()
+        print("extracting reminder ", response)
+        return response

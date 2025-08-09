@@ -27,7 +27,7 @@ client = OpenAI(api_key=openai_api_key)
 # Setup Chat page
 st.set_page_config(
     page_title="NAIA assistant",
-    page_icon="assets/nurse.png",
+    page_icon="assets/Naia window icon.png",
     layout="centered",
     initial_sidebar_state="expanded"  # o "collapsed"
 )
