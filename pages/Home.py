@@ -1,6 +1,8 @@
 import streamlit as st 
 from PIL import Image
 
+from app import SendReminder
+
 
 if "page_config_set" not in st.session_state:
     st.set_page_config(
@@ -32,6 +34,8 @@ icons = {
     "FAQ": "assets/Faq icon v2.jpeg"
 }
 
+
+SendReminder.start_monitoring_thread(st.session_state["username"])
 
 # Función para renderizar cada acceso
 def render_access(title, description, icon_path, page_url=None):

@@ -28,7 +28,7 @@ class MedicationScheduleManager:
             try:
                 dt = datetime.strptime(dt_str, "%Y-%m-%d %H:%M")
                 if start <= dt <= end:
-                    upcoming.append(f"- 💊 {med['med_name']} ({med['dose']}) a las {med['time']}")
+                    upcoming.append(f"- 💊 {med['med_name']} ({med['dose']}) - {med['time']}")
             except:
                 continue
         return upcoming
