@@ -31,6 +31,7 @@ class MedicalRecordManager:
             "name": self.record.get("name"),
             "age": self.record.get("age"),
             "gender": self.record.get("gender"),
+            "phone": self.record.get("phone"),
             "location": self.record.get("location", {}),
         }
 
