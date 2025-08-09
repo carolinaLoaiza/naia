@@ -67,19 +67,20 @@ def monitoring(user):
         st.session_state.sent_reminders = set()
     while True:
         upcoming_meds = get_upcoming_medication(username)
-        meds_to_send = [med for med in upcoming_meds if med not in st.session_state.sent_reminders]
-        if meds_to_send:
-            medicalRecordManager = MedicalRecordManager(username)
-            patientInfo = medicalRecordManager.get_patient_info()
-            phone = patientInfo.get("phone")
-            if phone:
-                message = "\n".join(meds_to_send)
-                enviado = enviar_sms(phone, message)
-                if enviado:
-                    # Guardar los mensajes enviados para no repetir
-                    for med in meds_to_send:
-                        st.session_state.sent_reminders.add(med)
-
+        if upcoming_meds: 
+            meds_to_send = [med for med in upcoming_meds if med not in st.session_state.sent_reminders]
+            if meds_to_send:
+                medicalRecordManager = MedicalRecordManager(username)
+                patientInfo = medicalRecordManager.get_patient_info()
+                phone = patientInfo.get("phone")
+                if phone:
+                    message = "\n".join(meds_to_send)
+                    enviado = enviar_sms(phone, message)
+                    if enviado:
+                        # Guardar los mensajes enviados para no repetir
+                        for med in meds_to_send:
+                            st.session_state.sent_reminders.add(med)
+                
         time.sleep(30)
     
     

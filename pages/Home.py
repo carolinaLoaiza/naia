@@ -2,6 +2,7 @@ import streamlit as st
 from PIL import Image
 
 from app import SendReminder
+from app.MedicalRecordManager import MedicalRecordManager
 
 
 if "page_config_set" not in st.session_state:
@@ -14,6 +15,12 @@ if "page_config_set" not in st.session_state:
     st.session_state.page_config_set = True
 st.title(":orange[Welcome to NAIA]")
 
+# Autenticathion
+if not st.session_state.get("authentication_status"):
+    st.warning("Please log in first.")
+    st.stop()
+
+username = st.session_state["username"]
 
 st.markdown("""
 Nurse Artificial Intelligence Assistant - NAIA is your smart post-surgery assistant.  
@@ -35,7 +42,18 @@ icons = {
 }
 
 
-SendReminder.start_monitoring_thread(st.session_state["username"])
+
+medicalRecordManager = MedicalRecordManager(username)
+patientInfo = medicalRecordManager.get_patient_info()
+phone = patientInfo.get("phone")
+if not phone:
+    if not st.session_state.get("no_phone_toast_shown"):
+        st.toast("No phone number is linked to the client for receiving reminders. Please visit the NHS portal and update your details.", icon="❗")
+        st.session_state.no_phone_toast_shown = True    
+else:
+    SendReminder.start_monitoring_thread(username)
+
+
 
 # Función para renderizar cada acceso
 def render_access(title, description, icon_path, page_url=None):
