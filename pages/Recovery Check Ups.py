@@ -61,7 +61,7 @@ today = datetime.now().date()
 past_df = scheduled_df[scheduled_df["datetime"].dt.date < today].copy()
 future_df = scheduled_df[scheduled_df["datetime"].dt.date >= today].copy()
 
-columns_to_exclude = ["is_ongoing", "total_days", "preferred_times", "frequency"]
+columns_to_exclude = ["is_ongoing", "total_days", "preferred_times", "frequency", "type"]
 future_df = future_df.drop(columns=[col for col in columns_to_exclude if col in future_df.columns], errors="ignore")
 
 past_df["completed_status"] = past_df["completed"].apply(lambda x: "✅" if x else "❌")

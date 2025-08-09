@@ -30,8 +30,8 @@ def classify_intent(state: dict) -> str:
     Your task is to classify the user's message into one of these agents:
     
     - "symptom_agent": if the user is describing physical symptoms (e.g., "I have pain", "I'm nauseous", "It hurts")
-    - "reminder_medication_agent": if the user asks to check, create, confirm, or modify any medication reminders (e.g., "Did I take my ibuprofen?", "Remind me to take my pills")
-    - "reminder_recovery_agent": if the user asks to check, create, confirm, or modify any recovery task reminders (e.g., "What stretches do I need to do today?", "When should I apply ice?")
+    - "reminder_medication_agent": if the user asks to check, or confirm any reminders exclusively related witn medication (e.g., "Did I take my ibuprofen?", "What are the medications for today?")
+    - "reminder_recovery_agent": if the user asks to check, create, confirm, modify or remove any recovery task/check ups reminders or reminders created by the patient previously (e.g., "What stretches do I need to do today?", "When should I apply ice?", "set a reminder", "create a reminder")
     - "medical_record_agent": if the user is asking about general medical history like allergies, past prescriptions, surgeries, or lab results
     - "recommendation_agent": if the user wants medical advice or next steps (e.g., "what should I do?", "is this normal?", "should I go to the hospital?")
     - "chat_agent": if the user is being friendly or casual (e.g., "how are you?", "what's your name?")
@@ -48,7 +48,6 @@ def classify_intent(state: dict) -> str:
 
     Examples:
     - "I have pain in my leg" → symptom_agent
-    - "Remind me to take my pills at 8pm" → reminder_medication_agent
     - "Did I take my ibuprofen?" → reminder_medication_agent
     - "What stretches do I need to do today?" → reminder_recovery_agent
     - "When should I apply ice?" → reminder_recovery_agent

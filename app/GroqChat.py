@@ -317,4 +317,146 @@ class GroqChat:
         response = self.classifier_llm.invoke(prompt).content.strip().lower()
         return response
 
+    def find_reminder_mentioned(self, user_input, all_reminders):
+        unique_tasks = {}
+        for reminder in all_reminders:
+            name = reminder["activity"].lower()
+            reminder_type = "personal" if reminder.get("created_by_patient", False) else "doctor"
+            if name not in unique_tasks:
+                unique_tasks[name] = {
+                    "activity": reminder["activity"],
+                    "type": reminder_type
+                }
+        task_list = [f"{data['activity']} ({data['type']})" for data in unique_tasks.values()]
+        task_list_str = "\n".join(f"- {data['activity']} ({data['type']})" for data in unique_tasks.values())
 
+        print("task_list " , task_list)
+        prompt = f"""
+            You are a reminder intent classification assistant.
+
+            Here is a list of existing reminders with their types:
+            {task_list_str}
+
+            User message: "{user_input}"
+
+            Task:
+            - Determine the user's intent regarding reminders.
+            - There are exactly four possible outcomes:
+
+            1. "consult_existing" → The user wants to check, view, or ask about an existing reminders.
+            2. "mark_done_existing" → The user wants to mark an existing reminder as done/completed.
+            3. "reminder_crud" → The user wants to create, modify, or delete a reminder.
+            4. "none" → The message is unrelated to reminders.
+
+            Rules:
+            - If the message contains words like "create", "add", "new", or "set up", assume the action is "reminder_crud".
+            - If the reminder name mentioned is in the list, return the action type above plus the exact reminder name in the format: ACTION|REMINDER_NAME.
+            - If the reminder name is not in the list and the action is "reminder_crud", respond with: ACTION|new for a new reminder creation.
+            - If the message has nothing to do with reminders, respond ONLY with: none.
+            - Do not explain your answer, just output the exact required format.
+
+            Examples:
+            - consult_existing|Take vitamins
+            - mark_done_existing|Morning exercise
+            - reminder_crud|Buy milk
+            - reminder_crud|new  - for messages like "create a new reminder
+            - none
+            """
+        
+        result = self.classifier_llm.invoke(prompt).content.strip()
+        print ("result------------ ", result)
+        return result
+    
+    def get_reminder_information(self, user_input, all_reminders):
+        unique_tasks = {}
+        for reminder in all_reminders:
+            name = reminder["activity"].lower()
+            reminder_type = reminder["type"]
+            if name not in unique_tasks:
+                unique_tasks[name] = {
+                    "activity": reminder["activity"],
+                    "type": reminder_type
+                }
+            task_lines = [f"- {data['activity']} ({data['type']})" for data in unique_tasks.values()]
+            tasks_text = "\n".join(task_lines)
+            prompt = f"""
+               You are a reminder matching assistant.
+
+                Here is the list of existing reminders with their type:
+                {tasks_text}
+
+                User message:
+                "{user_input}"
+
+                Task:
+                - Check if the reminder activity mentioned in the user's message refers to one in the list above.
+                - Consider it a match even if:
+                    * Case (upper/lower) is different.
+                    * There are plural/singular variations.
+                    * There are extra words like "the", "reminder", "task", "my", etc.
+                    * There are action verbs like "delete", "remove", "mark", "complete", etc.
+                - If the meaning clearly refers to one existing activity, output ONLY: YES|TYPE (TYPE is "personal" or "doctor").
+                - If it does not refer to any activity in the list, output ONLY: NO.
+                - No explanations. No extra text. No formatting.
+                """
+        result = self.classifier_llm.invoke(prompt).content.strip().upper()
+        print("Match result:", result)
+        print ("_________________________________")
+        return result
+
+    def get_new_reminder(self, user_input, all_reminders):
+        unique_tasks = {}
+        for reminder in all_reminders:
+            name = reminder["activity"].lower()
+            reminder_type = reminder["type"]
+            if name not in unique_tasks:
+                unique_tasks[name] = {
+                    "activity": reminder["activity"],
+                    "type": reminder_type
+                }
+
+            prompt = f"""
+               You are a reminder matching assistant.
+
+                Here is the list of existing reminders with their type:
+                {unique_tasks}
+
+                User message:
+                "{user_input}"
+
+                Task:
+                - Check if the reminder activity mentioned in the user's message refers to one in the list above.
+                - Consider it a match even if:
+                    * Case (upper/lower) is different.
+                    * There are plural/singular variations.
+                    * There are extra words like "the", "reminder", "task", "my", etc.
+                    * There are action verbs like "delete", "remove", "mark", "complete", etc.
+                - If the meaning clearly refers to one existing activity, output ONLY: YES|TYPE (TYPE is "personal" or "doctor").
+                - If it does not refer to any activity in the list, output ONLY: NO|.
+                - No explanations. No extra text. No formatting.
+                """
+        result = self.classifier_llm.invoke(prompt).content.strip().upper()
+        print("Match result:", result)
+        print ("_________________________________")
+        return result
+    
+    def extract_reminder_info_simple(self, user_input):
+        prompt = f"""
+            You are an assistant that extracts reminder details from a user's message.
+
+            Given the user's message below, extract the following fields:
+            - activity: the main task or reminder activity mentioned.
+            - time: the time related to the reminder (if mentioned, else null).
+            - frequency: how often the reminder happens (e.g., daily, every 2 days), if mentioned (else null).
+            - period: the duration or status of the reminder (e.g., q month, 1 week, 15 days), if not mentioned (ongoing).
+
+            Return ONLY a JSON object with these keys and values. Use null if a field is not specified.
+
+            User message:
+            \"\"\"{user_input}\"\"\"
+
+            Respond ONLY with the JSON object. No extra text or explanation.
+        """
+        response = self.classifier_llm.invoke(prompt).content.strip()
+        print("extracting reminder ", response)
+        return response

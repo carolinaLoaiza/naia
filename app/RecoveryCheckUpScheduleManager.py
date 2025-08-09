@@ -78,7 +78,8 @@ class RecoveryCheckUpScheduleManager:
                     "duration_minutes": info.get("duration_minutes", 0),
                     "completed": False,
                     "is_ongoing": True,
-                    "notes": info.get("notes", "")
+                    "notes": info.get("notes", ""),
+                    "type": "doctor" 
                 })
                 continue
             # Extract the scheduled tasks
@@ -91,7 +92,8 @@ class RecoveryCheckUpScheduleManager:
                             "date": date.strftime("%Y-%m-%d"),
                             "time": time_str,
                             "duration_minutes": info["duration_minutes"],
-                            "completed": False
+                            "completed": False,
+                            "type": "doctor" 
                         })
                 else:
                     for i in range(frequency):
@@ -101,7 +103,8 @@ class RecoveryCheckUpScheduleManager:
                             "date": date.strftime("%Y-%m-%d"),
                             "time": time_str,
                             "duration_minutes": info["duration_minutes"],
-                            "completed": False
+                            "completed": False,
+                            "type": "doctor" 
                         })
         return all_schedules
 
