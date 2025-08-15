@@ -49,11 +49,13 @@ authenticator = stauth.Authenticate(
     config['cookie']['key'],
     config['cookie']['expiry_days']
 )
-
+# st.title(":orange[NAIA - FAQ ]")
+st.write("Please enter your :blue[**NHS ID**] as your username.")
 try:
     authenticator.login()
 except stauth.AuthenticationError as e:
     st.error(e)
+
 
 
 # Authenticating user
