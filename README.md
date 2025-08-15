@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 NAIA (Nursing AI Assistant)
 Overview
 NAIA is a conversational AI-powered assistant designed to support post-operative patients with their recovery journey. It combines text and voice interaction, smart symptom monitoring, medication and appointment reminders, and access to medical history to offer a personalized at-home experience.
@@ -63,3 +64,8 @@ Expand agent capabilities for personalized decision support.
 Add user authentication and secure data storage.
 
 Introduce analytics dashboards for patient progress tracking.
+=======
+# naia
+
+test
+>>>>>>> dev
