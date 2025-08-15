@@ -1,34 +1,50 @@
 from datetime import datetime, timedelta
 import os
 import json
+from uuid import uuid4
+
+from data.DataBaseManager import DatabaseManager
 
 class SymptomManager:
-    def __init__(self, user_id, base_path="data/"):
-        self.filepath = os.path.join(base_path, f"symptoms_{user_id}.json")
-        self.symptoms = self._load()
+    # def __init__(self, user_id, base_path="data/"):
+    #     self.filepath = os.path.join(base_path, f"symptoms_{user_id}.json")
+    #     self.symptoms = self._load()
+    def __init__(self, user_id):
+        self.user_id = user_id
+        db_manager = DatabaseManager()
+        self.collection = db_manager.get_collection("symptomTracker")    
 
-    def _load(self):
-        if os.path.exists(self.filepath):
-            try:
-                with open(self.filepath, "r", encoding="utf-8") as f:
-                    content = f.read().strip()
-                    if not content:
-                        return []  # Handle empty file
-                    return json.loads(content)
-            except (json.JSONDecodeError, IOError):
-                return []  # Handle invalid JSON or read errors
-        return []
+    # def _load(self):
+    #     if os.path.exists(self.filepath):
+    #         try:
+    #             with open(self.filepath, "r", encoding="utf-8") as f:
+    #                 content = f.read().strip()
+    #                 if not content:
+    #                     return []  # Handle empty file
+    #                 return json.loads(content)
+    #         except (json.JSONDecodeError, IOError):
+    #             return []  # Handle invalid JSON or read errors
+    #     return []
     
-    def save(self):
-        with open(self.filepath, "w", encoding="utf-8") as f:
-            json.dump(self.symptoms, f, ensure_ascii=False, indent=2)
+    # def save(self):
+    #     with open(self.filepath, "w", encoding="utf-8") as f:
+    #         json.dump(self.symptoms, f, ensure_ascii=False, indent=2)
 
     
+    # def add_entry(self, entry):
+    #     if "timestamp" not in entry:
+    #         entry["timestamp"] = datetime.now().isoformat()
+    #     self.symptoms.append(entry)
+    #     self.save()
+
     def add_entry(self, entry):
+        """Agrega un registro de síntomas con timestamp."""
         if "timestamp" not in entry:
             entry["timestamp"] = datetime.now().isoformat()
-        self.symptoms.append(entry)
-        self.save()
+        entry["patient_id"] = self.user_id
+        entry["id"] = str(uuid4())
+        self.collection.insert_one(entry)
+        return entry
 
     def add(self, new_symptoms):
         for s in new_symptoms:
@@ -36,23 +52,44 @@ class SymptomManager:
                 self.symptoms.append(s)
         self.save()
 
+    # def get_all(self):
+    #     return self.symptoms
     def get_all(self):
-        return self.symptoms
-
+        """Return all the records from the patient."""
+        return list(self.collection.find({"patient_id": self.user_id}))
+    
     def filter_recent_symptoms(self, daysDefined):
+        """Filter symptoms recent according to the range of days."""
         cutoff = datetime.now() - timedelta(days=daysDefined)
+        cutoff_str = cutoff.isoformat()
+
+        cursor = self.collection.find({
+            "patient_id": self.user_id,
+            "timestamp": {"$gte": cutoff_str}
+        })
+
         recent_symptoms = []
-        for entry in self.symptoms:
-            try:
-                timestamp = datetime.fromisoformat(entry["timestamp"])
-                if timestamp >= cutoff:
-                    for symptom in entry.get("symptoms", []):
-                        if symptom not in recent_symptoms:
-                            recent_symptoms.append(symptom)
-            except Exception as e:
-                print(f"Error parsing entry timestamp: {e}")
-                continue
-        if not recent_symptoms:
-            print("No recent symptoms found.")
-            return []       
-        return recent_symptoms    
+        for entry in cursor:
+            for symptom in entry.get("symptoms", []):
+                if symptom not in recent_symptoms:
+                    recent_symptoms.append(symptom)
+
+        return recent_symptoms
+    # def filter_recent_symptoms(self, daysDefined):
+    #     cutoff = datetime.now() - timedelta(days=daysDefined)
+    #     recent_symptoms = []
+    #     for entry in self.symptoms:
+    #         try:
+    #             timestamp = datetime.fromisoformat(entry["timestamp"])
+    #             if timestamp >= cutoff:
+    #                 for symptom in entry.get("symptoms", []):
+    #                     if symptom not in recent_symptoms:
+    #                         recent_symptoms.append(symptom)
+    #         except Exception as e:
+    #             print(f"Error parsing entry timestamp: {e}")
+    #             continue
+    #     if not recent_symptoms:
+    #         print("No recent symptoms found.")
+    #         return []       
+    #     return recent_symptoms  
+      

@@ -36,6 +36,8 @@ df = pd.DataFrame(routine_tracker)
 ongoing_df = df[df["is_ongoing"] == True].copy()
 scheduled_df = df[df["is_ongoing"] != True].copy()
 
+
+
 scheduled_df["datetime"] = pd.to_datetime(scheduled_df["date"] + " " + scheduled_df["time"])
 
 if not ongoing_df.empty:
@@ -61,6 +63,9 @@ today = datetime.now().date()
 past_df = scheduled_df[scheduled_df["datetime"].dt.date < today].copy()
 future_df = scheduled_df[scheduled_df["datetime"].dt.date >= today].copy()
 
+past_df = past_df.drop(columns=["_id"], errors="ignore")
+future_df = future_df.drop(columns=["_id"], errors="ignore")
+
 columns_to_exclude = ["is_ongoing", "total_days", "preferred_times", "frequency", "type"]
 future_df = future_df.drop(columns=[col for col in columns_to_exclude if col in future_df.columns], errors="ignore")
 
@@ -75,6 +80,8 @@ else:
     gb.configure_pagination()
     gb.configure_selection("single")
     gb.configure_column("completed", editable=True, cellEditor='agCheckboxCellEditor')
+    gb.configure_column("id", hide=True)
+    gb.configure_column("patient_id", hide=True)
     gb.configure_default_column(editable=False)
     grid_options = gb.build()
 
@@ -91,11 +98,12 @@ else:
     )
 
     updated_df = grid_response["data"]
-
+    
     if st.button("Save Routine Changes"):
         updated_tracker = pd.concat([past_df, pd.DataFrame(updated_df)]).drop(columns=["completed_status", "datetime"], errors='ignore')
         updated_tracker = updated_tracker.sort_values(by=["date", "time"])
-        recoveryCheckUpScheduleManager.save_routine_tracker(updated_tracker.to_dict(orient="records"))
+        # recoveryCheckUpScheduleManager.save_routine_tracker(updated_tracker.to_dict(orient="records"))
+        recoveryCheckUpScheduleManager.update_completed_status(updated_df.to_dict(orient='records'))
         st.success("Routine tracker updated!")
 
 # Historical
@@ -114,4 +122,16 @@ AgGrid(
     theme="balham",
     height=300,
     fit_columns_on_grid_load=True,
+)
+# Footer or credits
+st.markdown("<hr>", unsafe_allow_html=True)
+st.markdown(
+    """
+    <div style='text-align: center; font-size: 0.9em; color: gray; padding-top: 10px;'>
+        Built with caffeine, curiosity, and questionable Wi-Fi. <br>
+        <strong>Disclaimer/Important:</strong> NAIA is an academic prototype and should not be used as a replacement for your GP. <br>
+        <em>Northumbria University London - NUL </em> – Contemporary Computing and Digital Technologies module
+    </div>
+    """,
+    unsafe_allow_html=True
 )

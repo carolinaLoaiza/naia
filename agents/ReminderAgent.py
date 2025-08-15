@@ -40,10 +40,9 @@ def handle_reminder_recovery_query(state):
     user_input = state["input"]
     username = state.get("username", "user1")
     recoveryManager = RecoveryCheckUpScheduleManager(username)
-    all_reminders = recoveryManager.load_routine_tracker()
+    all_reminders = recoveryManager.load_tracker()
     chat = GroqChat()
     referenced_reminder = chat.find_reminder_mentioned(user_input, all_reminders)
-    
     if referenced_reminder == "none":
         return {"output": "This message doesn't seem related to any reminders."}
     else:
@@ -55,18 +54,29 @@ def handle_reminder_recovery_query(state):
             if not all_reminders:
                 return {"output": "There are no recovery tasks scheduled."}    
             today_str = datetime.now().strftime("%Y-%m-%d")
-            tracker_today = [t for t in all_reminders if t.get("date") == today_str]
+            # tracker_today = [t for t in all_reminders if t.get("date") == today_str]
+
+            tracker_today = [
+                {k: v for k, v in t.items() if k != "_id"} 
+                for t in all_reminders 
+                if t.get("date") == today_str
+            ]
             is_recovery_related = chat.is_recovery_related(user_input, tracker_today)
             if is_recovery_related:
                 response = chat.answer_recovery_question(user_input, tracker_today)
-                return {"output": response}            
+                # print ("responses ", response)
+                return {"output": response}   
+            else:
+                return {"output": f"Reminder not recognized, do you want to create it? Please specify activity, time, period"}        
         elif action == "mark_done_existing":
             print(f"User wants to mark done reminder: {reminder_name}")
             if not all_reminders:
                 return {"output": "There are no recovery tasks scheduled."}    
             today_str = datetime.now().strftime("%Y-%m-%d")
             tracker_today = [t for t in all_reminders if t.get("date") == today_str]
-            done_task = chat.extract_completed_recovery_task(user_input)
+            # done_task = chat.extract_completed_recovery_task(user_input)
+            done_task = reminder_name
+            print("done_task", done_task)
             if done_task != "none":
                 print("done task", done_task)
                 updated, already_done = recoveryManager.mark_task_as_done(done_task)
@@ -76,6 +86,8 @@ def handle_reminder_recovery_query(state):
                     return {"output": f"📌 You already marked **{done_task}** as done earlier."}
                 else:
                     return {"output": f"⚠️ I understood you did **{done_task}**, but couldn't find it in your schedule."}
+            else:
+                    return {"output": f"⚠️ I couldn't find **{done_task}** in your pending tasks."}
         elif action == "reminder_crud":
             return handle_crud_reminder(state, all_reminders)
         else:
@@ -92,33 +104,94 @@ def handle_crud_reminder (state, all_reminders):
     if "NO" in classify_reminder:
         json_str = chat.extract_reminder_info_simple(user_input)
         reminder_info = json.loads(json_str)
-        date = datetime.today().strftime("%Y-%m-%d")
+        print("reminder info", reminder_info)
         activity = reminder_info.get("activity", "").strip().capitalize()
-        time_str = reminder_info.get("time")
-        frequency_str = reminder_info.get("frequency", "").lower()
-        period_str = reminder_info.get("period") or "ongoing"
-        all_schedules = recoveryManager.load_routine_tracker()
-
-        all_schedules.append({
+        frequency_per_day = reminder_info.get("frequency_per_day", 0)
+        duration_minutes = reminder_info.get("duration_minutes", 0)
+        total_days = reminder_info.get("total_days", 0)
+        preferred_times = reminder_info.get("preferred_times", [])
+        notes = reminder_info.get("notes", "")
+        date = datetime.today()
+        now = datetime.now()
+        if ((frequency_per_day == 0 and not preferred_times) 
+                or ( frequency_per_day == 0 and total_days == 0)
+                or (not preferred_times and total_days == 0)):
+                new_checkup = {
                     "activity": activity,
-                    "date": date,
-                    "time": time_str,
-                    "total_days": None,
-                    "preferred_times": None,
-                    "frequency": frequency_str,
-                    "duration_minutes": None,
+                    "date": date.strftime("%Y-%m-%d"),
+                    "time": None,
+                    "total_days": total_days,
+                    "preferred_times": preferred_times,
+                    "frequency": frequency_per_day,
+                    "duration_minutes": duration_minutes,
                     "completed": False,
                     "is_ongoing": True,
-                    "notes": "",
-                    "type": "personal"
-                })
-        recoveryManager.save_routine_tracker(all_schedules)
-        confirmation_message = (
-            f"Your reminder for **\"{activity}\"** has been successfully created.\n\n"
-            f"- Date: {date} - {time_str if time_str else 'Not specified'}\n"
-            f"- Frequency: {frequency_str if frequency_str else 'Not specified'}\n"
-        )
-        return {"output": f"⏰ {confirmation_message}"}
+                    "notes": notes,
+                    "type": "personal" 
+                }
+                result = recoveryManager.save_checkup(new_checkup, True)
+                if result:
+                    confirmation_message = (
+                        f"Your reminder for **\"{activity}\"** has been successfully created.\n\n"                       
+                    )
+                    return {"output": f"⏰ {confirmation_message}"}
+                else:
+                    return {"output": "⚠️ There was an error creating your reminder. Please try again."}
+        else: 
+            result = True 
+            count = 0
+            for i in range(max(total_days + 1, 1)):
+                dateTo = date + timedelta(days=i)
+                if preferred_times:
+                    for time_str in preferred_times:
+                        reminder_dt = datetime.strptime(
+                            f"{dateTo.strftime('%Y-%m-%d')} {time_str}", "%Y-%m-%d %H:%M"
+                        )                        
+                        if reminder_dt <= now:
+                            continue
+                        new_checkup = {
+                            "activity": activity,
+                            "date": dateTo.strftime("%Y-%m-%d"),
+                            "time": time_str,
+                            "duration_minutes": duration_minutes,
+                            "completed": False,
+                            "type": "personal" 
+                        }
+                        if recoveryManager.save_checkup(new_checkup, False) == False:
+                            result = False
+                            break
+                        else:
+                            count += 1
+                else:
+                    for j in range(frequency_per_day):
+                        time_str = f"{9 + j * 5:02d}:00"  # Ej: 09:00, 14:00, 19:00...
+                        reminder_dt = datetime.strptime(
+                            f"{dateTo.strftime('%Y-%m-%d')} {time_str}", "%Y-%m-%d %H:%M"
+                        )                        
+                        if reminder_dt <= now:
+                            continue
+                        new_checkup = {
+                            "activity": activity,
+                            "date": dateTo.strftime("%Y-%m-%d"),
+                            "time": time_str,
+                            "duration_minutes": duration_minutes,
+                            "completed": False,
+                            "type": "personal" 
+                        }
+                        if recoveryManager.save_checkup(new_checkup, False) == False:
+                            result = False
+                            break
+                        else:
+                            count += 1
+            if result:
+                confirmation_message = (
+                    f"Your reminder for **\"{activity}\"** has been successfully created.\n\n"
+                    f"- {count} recurrent reminders were created \n"
+                    f"- Frequency: {frequency_per_day if frequency_per_day else 'Not specified'}\n"
+                )
+                return {"output": f"⏰ {confirmation_message}"}
+            else:
+                return {"output": "⚠️ There was an error creating your reminder. Please try again."}
     elif "YES|PERSONAL" in classify_reminder:
         return {"output": "📝 This is a personal reminder. What do you want to do — create, or delete a reminder?"}
     

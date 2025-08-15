@@ -3,26 +3,44 @@ import json
 from datetime import datetime
 from typing import List, Dict, Optional
 
+import requests
+
 class MedicalRecordManager:
     def __init__(self, username: str, base_path: str = "data/"):
+        #self.username = username
+        #self.file_path = os.path.join(base_path, f"history_{username.lower()}.json")
+        #self.record = self.load_record()
+
         self.username = username
-        self.file_path = os.path.join(base_path, f"history_{username.lower()}.json")
+        self.api_url = "https://689c738058a27b18087e39e2.mockapi.io/mock_nhs_api/v1/patients"
         self.record = self.load_record()
 
     def load_record(self) -> dict:
-        if not os.path.exists(self.file_path):
-            print(f"No medical history found for user '{self.username}' at {self.file_path}")
-            return None        
         try:
-            with open(self.file_path, "r") as f:
-                return json.load(f)
+            response = requests.get(f"{self.api_url}?patient_id={self.username}")
+            response.raise_for_status()
+            data = response.json()
+            if not data:
+                print(f"No medical history found for user '{self.username}' in API")
+                return None
+            return data[0]
         except Exception as e:
-            print(f"Error loading medical record: {e}")
+            print(f"Error loading medical record from NHS MockAPI: {e}")
             return None
+        
+        # if not os.path.exists(self.file_path):
+        #     print(f"No medical history found for user '{self.username}' at {self.file_path}")
+        #     return None        
+        # try:
+        #     with open(self.file_path, "r") as f:
+        #         return json.load(f)
+        # except Exception as e:
+        #     print(f"Error loading medical record: {e}")
+        #     return None
 
-    def save_record(self) -> None:
-        with open(self.file_path, "w") as f:
-            json.dump(self.record, f, indent=2)
+    # def save_record(self) -> None:
+    #     with open(self.file_path, "w") as f:
+    #         json.dump(self.record, f, indent=2)
 
     # Basic info
     def get_patient_info(self) -> dict:
@@ -53,12 +71,12 @@ class MedicalRecordManager:
     def get_prescription_refill_policy(self) -> str:
         return self.record.get("prescription", {}).get("refill_policy", "")
 
-    def update_prescription(self, instructions: List[str], refill_policy: str) -> None:
-        self.record["prescription"] = {
-            "instructions": instructions,
-            "refill_policy": refill_policy
-        }
-        self.save_record()
+    # def update_prescription(self, instructions: List[str], refill_policy: str) -> None:
+    #     self.record["prescription"] = {
+    #         "instructions": instructions,
+    #         "refill_policy": refill_policy
+    #     }
+    #     self.save_record()
 
     # Conditions & history
     def get_pre_existing_conditions(self) -> List[dict]:
@@ -91,9 +109,9 @@ class MedicalRecordManager:
         return self.record.get("notes", "")
 
     # Sample of simple update: adding a note
-    def add_note(self, note: str) -> None:
-        existing_notes = self.record.get("notes", "")
-        timestamp = datetime.now().strftime("%Y-%m-%d %H:%M")
-        updated_notes = existing_notes + f"\n[{timestamp}] {note}"
-        self.record["notes"] = updated_notes.strip()
-        self.save_record()
+    # def add_note(self, note: str) -> None:
+    #     existing_notes = self.record.get("notes", "")
+    #     timestamp = datetime.now().strftime("%Y-%m-%d %H:%M")
+    #     updated_notes = existing_notes + f"\n[{timestamp}] {note}"
+    #     self.record["notes"] = updated_notes.strip()
+    #     self.save_record()

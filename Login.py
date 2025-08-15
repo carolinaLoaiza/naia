@@ -1,7 +1,6 @@
 import streamlit as st
 import streamlit_authenticator as stauth
-import yaml
-from yaml.loader import SafeLoader
+import requests
 
 st.set_page_config(
     page_title="NAIA - Login",
@@ -10,9 +9,39 @@ st.set_page_config(
     initial_sidebar_state="collapsed"  # o "collapsed"
 )
 
+# URL de tu recurso en MockAPI
+USERS_API_URL = "https://689c738058a27b18087e39e2.mockapi.io/mock_nhs_api/v1/naia_users"  # reemplaza con tu URL real
 
-with open('auth_config.yaml') as file:
-    config = yaml.load(file, Loader=SafeLoader)
+
+# 1. Traer usuarios desde MockAPI
+try:
+    response = requests.get(USERS_API_URL)
+    response.raise_for_status()
+    users_data = response.json()
+except requests.RequestException as e:
+    st.error(f"NHS MockAPI connection error: {e}")
+    st.stop()
+
+
+# 2. Convertir usuarios al formato de streamlit_authenticator
+config = {
+    "credentials": {
+        "usernames": {}
+    },
+    "cookie": {
+        "name": "naia_session",
+        "key": "hackathon2025",  # cámbiala a algo único
+        "expiry_days": 1
+    }
+}
+
+for user in users_data:
+    config["credentials"]["usernames"][user["patient_id"]] = {
+        "email": f"{user['patient_id']}@naia.local",  # campo requerido por la librería
+        "name": f"Paciente {user['patient_id']}",
+        "password": user["passwordHash"]
+    }
+
 
 authenticator = stauth.Authenticate(
     config['credentials'],
@@ -20,6 +49,7 @@ authenticator = stauth.Authenticate(
     config['cookie']['key'],
     config['cookie']['expiry_days']
 )
+
 try:
     authenticator.login()
 except stauth.AuthenticationError as e:
