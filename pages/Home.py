@@ -13,7 +13,7 @@ if "page_config_set" not in st.session_state:
         initial_sidebar_state="expanded"
     )
     st.session_state.page_config_set = True
-st.title(":orange[Welcome to NAIA]")
+
 
 # Autenticathion
 if not st.session_state.get("authentication_status"):
@@ -21,6 +21,14 @@ if not st.session_state.get("authentication_status"):
     st.stop()
 
 username = st.session_state["username"]
+medicalRecordManager = MedicalRecordManager(username)
+if not medicalRecordManager.record:
+    st.error(f"⚠️ No medical record found for user **{username}**.\n\n")
+    st.info("NAIA needs your medical data to provide safe and accurate guidance. Please contact support to upload your medical history to continue.")
+    st.stop()
+else:
+    patient_name = medicalRecordManager.record.get("name", "Patient")
+st.title(":orange[Welcome to NAIA {patient_name}]".format(patient_name=patient_name))
 
 st.markdown("""
 Nurse Artificial Intelligence Assistant - NAIA is your smart post-surgery assistant.  
@@ -86,7 +94,7 @@ st.markdown(
     """
     <div style='text-align: center; font-size: 0.9em; color: gray; padding-top: 10px;'>
         Built with caffeine, curiosity, and questionable Wi-Fi. <br>
-        <strong>NAIA</strong> is an academic prototype – not quite your GP (yet). <br>
+        <strong>Disclaimer/Important:</strong> NAIA is an academic prototype and should not be used as a replacement for your GP. <br>
         <em>Northumbria University London - NUL </em> – Contemporary Computing and Digital Technologies module
     </div>
     """,

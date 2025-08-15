@@ -69,3 +69,16 @@ AgGrid(
     # allow_unsafe_jscode=True
     use_container_width=True 
 )
+
+# Footer or credits
+st.markdown("<hr>", unsafe_allow_html=True)
+st.markdown(
+    """
+    <div style='text-align: center; font-size: 0.9em; color: gray; padding-top: 10px;'>
+        Built with caffeine, curiosity, and questionable Wi-Fi. <br>
+        <strong>Disclaimer/Important:</strong> NAIA is an academic prototype and should not be used as a replacement for your GP. <br>
+        <em>Northumbria University London - NUL </em> – Contemporary Computing and Digital Technologies module
+    </div>
+    """,
+    unsafe_allow_html=True
+)

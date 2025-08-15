@@ -58,7 +58,6 @@ class GroqChat:
         return response
 
     def extract_symptoms(self, user_input):
-
         prompt = f"""
             Extract symptoms and metadata from the user's message.
             Return ONLY ONE raw JSON object. No Markdown, no comments, no extra text.
@@ -82,7 +81,7 @@ class GroqChat:
             """
         
         response = self.chat_llm.invoke([HumanMessage(content=prompt)]).content.strip()
-        print("Prompt for symptom extraction:", response)
+        # print("Prompt for symptom extraction:", response)
         try:
             start = response.find("{")
             end   = response.rfind("}")
@@ -95,7 +94,7 @@ class GroqChat:
                 .replace("\u200B", "")   # zero-width space
                 .replace("“", '"').replace("”", '"').replace("’", "'")  # comillas tipográficas
             )
-            print("JSON text extracted:", json_text)
+            # print("JSON text extracted:", json_text)
             data = json.loads(json_text)
             return data
         except Exception as e:
@@ -166,7 +165,7 @@ class GroqChat:
     def answer_recovery_question(self, user_input: str, recovery_data: list) -> str:
         # Formatea el JSON como string para que el modelo lo procese
         recovery_json_str = json.dumps(recovery_data, indent=2)
-
+        # print("Recovery JSON:", recovery_json_str)
         prompt = f"""
         You are a helpful assistant that helps users manage their post-surgery recovery tasks and schedules.
 
@@ -218,11 +217,15 @@ class GroqChat:
         return response.lower()
     
     def is_recovery_related(self, user_input, tracker):
+        tracker_simplified = [
+             {"activity": t["activity"], "time": t["time"]} 
+                for t in tracker
+            ]
         prompt = f"""
-        Given the user's input and the list of scheduled recovery tasks, 
-        determine if the input is related to recovery tasks or recovery care.
+        Given the user's input and the list of scheduled recovery activities, recovery checkups or recovery tasks, 
+        determine if the input describes doing or referring to any of the items listed in the recovery activities.
 
-        Recovery tasks: {json.dumps(tracker)}
+        Recovery activities: {json.dumps(tracker_simplified)}
 
         User input: "{user_input}"
 
@@ -330,42 +333,74 @@ class GroqChat:
         task_list = [f"{data['activity']} ({data['type']})" for data in unique_tasks.values()]
         task_list_str = "\n".join(f"- {data['activity']} ({data['type']})" for data in unique_tasks.values())
 
-        print("task_list " , task_list)
+        # print("task_list " , task_list)
+        # prompt = f"""
+        #     You are a reminder intent classification assistant.
+
+        #     Here is a list of existing reminders with their types:
+        #     {task_list_str}
+
+        #     User message: "{user_input}"
+
+        #     Task:
+        #     - Determine the user's intent regarding reminders.
+        #     - There are exactly four possible outcomes:
+
+        #     1. "mark_done_existing" → The user wants to mark an existing reminder as done/completed.
+        #     2. "consult_existing" → The user wants to check, view, or ask about an existing reminders.
+        #     3. "reminder_crud" → The user wants to create, modify, or delete a reminder.
+        #     4. "none" → The message is unrelated to reminders.
+
+        #     Rules:
+        #     - If the message contains words like "create", "add", "new", or "set up", assume the action is "reminder_crud".
+        #     - If the message describes that the user has already performed one of the listed reminders (even without saying "done" or "complete"), treat it as "mark_done_existing". Examples: "I took my vitamins", "I applied ice to my knee", "I went for my morning walk".
+        #     - If the reminder name mentioned is in the list, return the action type above plus the exact reminder name in the format: ACTION|REMINDER_NAME.
+        #     - If the reminder name is not in the list and the action is "reminder_crud", respond with: ACTION|new for a new reminder creation.
+        #     - If the message has nothing to do with reminders, respond ONLY with: none.
+        #     - Do not explain your answer, just output the exact required format.
+
+        #     Examples:
+        #     - consult_existing|Take vitamins
+        #     - mark_done_existing|Morning exercise
+        #     - reminder_crud|Buy milk
+        #     - reminder_crud|new  - for messages like "create a new reminder
+        #     - none
+        #     """
         prompt = f"""
-            You are a reminder intent classification assistant.
+        You are a reminder intent classifier.
 
-            Here is a list of existing reminders with their types:
-            {task_list_str}
+        Existing reminders: {task_list_str}
+        User message: "{user_input}"
 
-            User message: "{user_input}"
+        Decide the intent:
+        1. mark_done_existing → The user indicates they already did one of the listed reminders, even if they don't use "done" or "completed". Examples: "I took my vitamins", "I applied ice on my knee", "I did leg stretches", "I went for my walk".
+        2. consult_existing → The user is asking to see, check, or know about an existing reminder.
+        3. reminder_crud → The user wants to create, modify, or delete a reminder.
+        4. none → The message is unrelated to reminders.
 
-            Task:
-            - Determine the user's intent regarding reminders.
-            - There are exactly four possible outcomes:
-
-            1. "consult_existing" → The user wants to check, view, or ask about an existing reminders.
-            2. "mark_done_existing" → The user wants to mark an existing reminder as done/completed.
-            3. "reminder_crud" → The user wants to create, modify, or delete a reminder.
-            4. "none" → The message is unrelated to reminders.
-
-            Rules:
-            - If the message contains words like "create", "add", "new", or "set up", assume the action is "reminder_crud".
-            - If the reminder name mentioned is in the list, return the action type above plus the exact reminder name in the format: ACTION|REMINDER_NAME.
-            - If the reminder name is not in the list and the action is "reminder_crud", respond with: ACTION|new for a new reminder creation.
-            - If the message has nothing to do with reminders, respond ONLY with: none.
-            - Do not explain your answer, just output the exact required format.
-
-            Examples:
-            - consult_existing|Take vitamins
-            - mark_done_existing|Morning exercise
-            - reminder_crud|Buy milk
-            - reminder_crud|new  - for messages like "create a new reminder
-            - none
-            """
-        
+        Respond ONLY with one of:
+        mark_done_existing
+        consult_existing
+        reminder_crud
+        none
+        """
         result = self.classifier_llm.invoke(prompt).content.strip()
         print ("result------------ ", result)
-        return result
+
+        if result == "none":
+            return "none"
+        prompt = f"""
+        You are a reminder name matcher.
+
+        Existing reminders: {task_list_str}
+        User message: "{user_input}"
+
+        Find the single reminder from the list that best matches the message, even if the wording is different.
+        Return ONLY the exact reminder name from the list, or "none" if there is no match.
+        """
+        result2 = self.classifier_llm.invoke(prompt).content.strip()
+        print ("result2------------ ", result2)
+        return result + "|" + result2
     
     def get_reminder_information(self, user_input, all_reminders):
         unique_tasks = {}
@@ -444,12 +479,20 @@ class GroqChat:
         prompt = f"""
             You are an assistant that extracts reminder details from a user's message.
 
-            Given the user's message below, extract the following fields:
-            - activity: the main task or reminder activity mentioned.
-            - time: the time related to the reminder (if mentioned, else null).
-            - frequency: how often the reminder happens (e.g., daily, every 2 days), if mentioned (else null).
-            - period: the duration or status of the reminder (e.g., q month, 1 week, 15 days), if not mentioned (ongoing).
+            Given the user's message below, extract the following fields as JSON:
+            - activity: short name of the activity (e.g., "Apply ice to the knee")
+            - frequency_per_day: how many times per day (integer)
+            - duration_minutes: how long each session lasts (in minutes) if specified, else null
+            - total_days: for how many days (integer) if specified, -1 if not specified
+            - preferred_times: list of time strings (["09:00", "15:00"]) or empty if not specified
+            - notes: optional clarifications           
 
+            Instructions:
+            - Convert all frequency expressions like "every 4 hours", "every 3 hours", etc. into explicit time values starting from 06:00.
+            - For example, "every 4 hours" should become ["06:00", "10:00", "14:00", "18:00", "22:00"].
+            - Always provide explicit time slots as a list of HH:MM strings in 24-hour format.
+            - total days should be 0 if not specified, or if the user says for tomorrow, it should be 1.
+                        
             Return ONLY a JSON object with these keys and values. Use null if a field is not specified.
 
             User message:
