@@ -35,15 +35,17 @@ if not appointments:
 
 # Mostrar tabla completa (sin edición)
 df = pd.DataFrame(appointments)
-df["attended_status"] = df.apply(lambda row: appointmentManager.status_with_tristate(row["attended"], row["date"]), axis=1)
+# df["attended_status"] = df.apply(lambda row: appointmentManager.status_with_tristate(row["attended"], row["date"]), axis=1)
 df["reminder_status"] = df.apply(lambda row: appointmentManager.status_with_tristate(row["reminder_sent"], row["date"]), axis=1)
 
 display_df = df[[
     "date", "time", "department", "location", "clinician", "reason",
-     "reminder_status", "attended_status", "notes"
+     "reminder_status"
+    #  , "attended_status"
+    , "notes"
 ]].rename(columns={
     "reminder_status": "Reminder Sent",
-    "attended_status": "Attended",
+    # "attended_status": "Attended",
     "clinician": "Clinician",
     "location": "Location",
     "reason": "Reason",

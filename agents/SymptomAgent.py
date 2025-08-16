@@ -8,11 +8,11 @@ from app.MedicalRecordManager import MedicalRecordManager
 from app.SymptomManager import SymptomManager
 
 def handle_symptom_query(state):
-    from agents.NaiaAgent import NaiaAgent  # import local para evitar ciclo
+    from agents.NaiaAgent import NaiaAgent  # import local to avoid circular dependency
     user_input = state["input"]
     username = st.session_state["username"]
     try:
-        # Carga historial médico
+        # Load medical history
         medical_record_manager = MedicalRecordManager(username)
         medical_data = medical_record_manager.record
 
@@ -21,7 +21,7 @@ def handle_symptom_query(state):
             "medications": medical_record_manager.get_medications(),
             "pre_existing_conditions": medical_record_manager.get_pre_existing_conditions(),
         }
-        # Instancia Naia y pasa su función como callback
+        # Naia instance and pass its function as callback
         naia_agent = NaiaAgent(medical_data)
         agent = SymptomAgent(patient_data, notify_fn=naia_agent.handle_symptom_notification)
         severity, reco_text = agent.process_symptom(user_input, duration_days=1)
@@ -65,13 +65,12 @@ class SymptomAgent:
         groq = GroqChat()
         data = groq.extract_symptoms(text)
         print("Extracted data:", data)
-        # Extraer síntomas
+        # Get symptoms
         symptoms = data.get("detected_symptoms") if data else []
         if not symptoms:
             symptoms = [text]  # fallback: todo como un síntoma
 
-        # Extraer duración
-        
+        # Extract the duration        
         for symptom in data.get("symptoms", []):
             name = symptom.get("name")
             if not name:
@@ -82,15 +81,10 @@ class SymptomAgent:
                 if duration_days is None or duration_days <= 0:
                     duration_days = 1
                 symptom["duration_days"] = duration_days
-
-
-#        duration_days = groq.extract_duration_from_text(text, ) 
-#        if duration_days == 0 or duration_days is None:
-#            duration_days = 1
             
         severity = self.classify_severity_llm(text, duration_days)
 
-        # Crear entrada con todos los síntomas
+        # Create the entry with all the symptoms
         now = datetime.now().isoformat()
         entry = {
             "timestamp": now,
@@ -98,7 +92,7 @@ class SymptomAgent:
             "overall_severity": severity,
             "input_text": text,
         }
-        # Guardar la entrada
+        # Save the entry
         self.symptom_manager.add_entry(entry)
 
         is_urgent = str(severity).lower() == "severe"

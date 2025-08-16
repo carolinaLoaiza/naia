@@ -60,24 +60,6 @@ for entry in reversed(symptoms[-10:]):  # últimos 10
 
 # Convertir a DataFrame para vista expandida
 df = pd.DataFrame(symptoms)
-# Mostrar los síntomas en tarjetas simples
-# for entry in reversed(symptoms[-10:]):  # Solo los últimos 10 para no saturar
-#     with st.container():
-#         col1, col2 = st.columns([3, 1])
-#         with col1:
-#             st.markdown(f"**📝 Symptoms:** {', '.join(entry.get('symptoms', []))}")
-#             st.markdown(f"**📍 Location:** {entry.get('location', 'Not specified')}")
-#             st.markdown(f"**📆 Date:** {entry.get('timestamp', 'N/A')[:10]}")
-#             st.markdown(f"**⏳ Duration:** {entry.get('duration', 'N/A')}")
-#             st.markdown(f"**⚠️ Severity:** `{entry.get('severity', 'unknown')}`")
-#         with col2:
-#             if entry.get("requires_attention"):
-#                 st.error("🚨 Requires Attention")
-#             else:
-#                 st.success("✅ Stable")
-#         st.markdown("---")
-# # Convertir lista a DataFrame
-# df = pd.DataFrame(symptoms)
 
 # Asegurar campo 'mensaje_original' existe
 if "input_text" not in df.columns:
