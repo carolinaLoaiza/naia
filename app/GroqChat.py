@@ -122,7 +122,11 @@ class GroqChat:
     def classify_severity(self, symptom: str, patient_context: dict, duration_days: int) -> str:
         prompt = f"""
         You are a post-surgery symptom triage assistant.
-
+        Consider:
+        - Symptom duration.
+        - Possible complications for the type of surgery.
+        - Risk factors from medications and pre-existing conditions.
+        
         Patient context:
         - Surgery: {patient_context.get('surgery')}
         - Duration of symptom: {duration_days} days
@@ -332,40 +336,6 @@ class GroqChat:
                 }
         task_list = [f"{data['activity']} ({data['type']})" for data in unique_tasks.values()]
         task_list_str = "\n".join(f"- {data['activity']} ({data['type']})" for data in unique_tasks.values())
-
-        # print("task_list " , task_list)
-        # prompt = f"""
-        #     You are a reminder intent classification assistant.
-
-        #     Here is a list of existing reminders with their types:
-        #     {task_list_str}
-
-        #     User message: "{user_input}"
-
-        #     Task:
-        #     - Determine the user's intent regarding reminders.
-        #     - There are exactly four possible outcomes:
-
-        #     1. "mark_done_existing" → The user wants to mark an existing reminder as done/completed.
-        #     2. "consult_existing" → The user wants to check, view, or ask about an existing reminders.
-        #     3. "reminder_crud" → The user wants to create, modify, or delete a reminder.
-        #     4. "none" → The message is unrelated to reminders.
-
-        #     Rules:
-        #     - If the message contains words like "create", "add", "new", or "set up", assume the action is "reminder_crud".
-        #     - If the message describes that the user has already performed one of the listed reminders (even without saying "done" or "complete"), treat it as "mark_done_existing". Examples: "I took my vitamins", "I applied ice to my knee", "I went for my morning walk".
-        #     - If the reminder name mentioned is in the list, return the action type above plus the exact reminder name in the format: ACTION|REMINDER_NAME.
-        #     - If the reminder name is not in the list and the action is "reminder_crud", respond with: ACTION|new for a new reminder creation.
-        #     - If the message has nothing to do with reminders, respond ONLY with: none.
-        #     - Do not explain your answer, just output the exact required format.
-
-        #     Examples:
-        #     - consult_existing|Take vitamins
-        #     - mark_done_existing|Morning exercise
-        #     - reminder_crud|Buy milk
-        #     - reminder_crud|new  - for messages like "create a new reminder
-        #     - none
-        #     """
         prompt = f"""
         You are a reminder intent classifier.
 
@@ -385,7 +355,7 @@ class GroqChat:
         none
         """
         result = self.classifier_llm.invoke(prompt).content.strip()
-        print ("result------------ ", result)
+        # print ("result------------ ", result)
 
         if result == "none":
             return "none"
@@ -399,7 +369,7 @@ class GroqChat:
         Return ONLY the exact reminder name from the list, or "none" if there is no match.
         """
         result2 = self.classifier_llm.invoke(prompt).content.strip()
-        print ("result2------------ ", result2)
+        # print ("result2------------ ", result2)
         return result + "|" + result2
     
     def get_reminder_information(self, user_input, all_reminders):
@@ -435,8 +405,8 @@ class GroqChat:
                 - No explanations. No extra text. No formatting.
                 """
         result = self.classifier_llm.invoke(prompt).content.strip().upper()
-        print("Match result:", result)
-        print ("_________________________________")
+        # print("Match result:", result)
+        # print ("_________________________________")
         return result
 
     def get_new_reminder(self, user_input, all_reminders):
@@ -471,8 +441,8 @@ class GroqChat:
                 - No explanations. No extra text. No formatting.
                 """
         result = self.classifier_llm.invoke(prompt).content.strip().upper()
-        print("Match result:", result)
-        print ("_________________________________")
+        # print("Match result:", result)
+        # print ("_________________________________")
         return result
     
     def extract_reminder_info_simple(self, user_input):
@@ -501,5 +471,5 @@ class GroqChat:
             Respond ONLY with the JSON object. No extra text or explanation.
         """
         response = self.classifier_llm.invoke(prompt).content.strip()
-        print("extracting reminder ", response)
+        # print("extracting reminder ", response)
         return response

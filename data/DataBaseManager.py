@@ -1,4 +1,3 @@
-# db_manager.py
 import streamlit as st
 from pymongo import MongoClient
 
