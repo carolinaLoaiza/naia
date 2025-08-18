@@ -86,6 +86,8 @@ This project is part of the MSc Artificial Intelligence Technology program at No
 
 ## Project Structure
 
+```
+
 Naia/
 │
 ├─ Agents/
@@ -134,7 +136,7 @@ Naia/
 │
 └─ Login page
 
-
+```
 ---
 
 This README provides a clear overview of NAIA’s functionality, technology stack, user stories, and project structure, suitable for academic purposes.
