@@ -15,7 +15,7 @@ appointmentManager = AppointmentManager(USER_ID)
 appointments = appointmentManager.return_appointment_info()
 
 
-# Configurar página
+# Set up page
 if "page_config_set" not in st.session_state:
     st.set_page_config(
         page_title="NAIA - Follow-ups",
@@ -33,7 +33,7 @@ if not appointments:
     st.info("No follow-up appointments found.")
     st.stop()
 
-# Mostrar tabla completa (sin edición)
+# Show complete table (read-only)
 df = pd.DataFrame(appointments)
 # df["attended_status"] = df.apply(lambda row: appointmentManager.status_with_tristate(row["attended"], row["date"]), axis=1)
 df["reminder_status"] = df.apply(lambda row: appointmentManager.status_with_tristate(row["reminder_sent"], row["date"]), axis=1)
@@ -56,7 +56,7 @@ display_df = df[[
     "notes": "Notes"
 })
 
-# Renderizar con AgGrid (solo lectura)
+# Render with AgGrid (read-only)
 gb = GridOptionsBuilder.from_dataframe(display_df)
 gb.configure_pagination()
 gb.configure_default_column(editable=False, sortable=True, filter=True, resizable=True, autoWidth=True)

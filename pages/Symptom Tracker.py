@@ -32,7 +32,7 @@ if not symptoms:
     st.stop()
 
 
-# Mostrar los síntomas en tarjetas simples
+# Show the symptoms in simple cards
 for entry in reversed(symptoms[-10:]):  # últimos 10
     with st.container():
         col1, col2 = st.columns([3, 1])
@@ -54,6 +54,8 @@ for entry in reversed(symptoms[-10:]):  # últimos 10
             # Usa alguna lógica si quieres marcar atención
             if entry.get("overall_severity") in ["severe", "high"]:
                 st.error("🚨 Requires Attention")
+            elif entry.get("overall_severity") in ["moderate", "low"]:
+                st.warning("⚠️ Monitor")
             else:
                 st.success("✅ Stable")
         st.markdown("---")

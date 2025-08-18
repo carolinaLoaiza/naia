@@ -10,10 +10,24 @@ from langchain.schema import HumanMessage, AIMessage, SystemMessage
 from langchain_groq import ChatGroq
 
 class GroqChat:
+    """
+    A post-surgery assistant chatbot using the Groq LLM API.
+
+    This class supports:
+    - Classifying user intent (health, reminder, chat)
+    - Extracting symptoms and severity
+    - Managing medication and recovery questions
+    - Providing conversational responses
+    """
     def __init__(self):
+        """
+        Initialize GroqChat with API keys and separate LLM instances for:
+        - general chat
+        - classification
+        - symptom analysis
+        """
         self.api_key = st.secrets["GROQ_API_KEY"]
         self.llm = ChatGroq(groq_api_key=self.api_key, temperature=0.5, model="llama-3.1-8b-instant")
-         # Modelo para todo (puedes cambiarlo luego si quieres separar)
         self.chat_llm = ChatGroq(groq_api_key=self.api_key
                                  , temperature=0.4
                                  , model="llama-3.1-8b-instant")
@@ -23,26 +37,55 @@ class GroqChat:
                                        , model="llama-3.1-8b-instant")
 
     def get_initial_messages(self):
+        """
+        Returns the initial system message for the conversation.
+        Returns: list: A list containing a SystemMessage object.
+        """
         return [
             SystemMessage(content="You are a helpful assistant for post-surgery recovery.")
         ]
 
     def human_message(self, content):
+        """
+        Create a HumanMessage object.
+        Args: content (str): User input text.
+        Returns: HumanMessage: A LangChain HumanMessage object.
+        """
         return HumanMessage(content=content)
 
     def ai_message(self, content):
+        """
+        Create an AIMessage object.
+        Args: content (str): AI response text.
+        Returns: AIMessage: A LangChain AIMessage object.
+        """
         return AIMessage(content=content)    
         
     def get_response(self, messages):
+        """
+        Send messages to the chat LLM and get a response.
+        Args: messages (list): List of HumanMessage, AIMessage, or SystemMessage.
+        Returns: str: Response content from the AI.
+        """
         return self.chat_llm.invoke(messages).content 
 
-    # This method is used to get a response from the chat model if the request does no suit with any of the classification intent
     def get_chat_response(self, user_input: str) -> str:
+        """
+        Generate a general chat response for the user's input.        
+        Args: user_input (str): User's message.        
+        Returns: str: AI-generated response from the chat model.
+        """
         messages = self.get_initial_messages()
         messages.append(self.human_message(user_input))
         return self.get_response(messages)    
     
     def classify_intent(self, user_input: str) -> str:
+        """
+        Classify the user's message into an intent category.        
+        Categories: 'health_agent', 'reminder_agent', 'chat_agent'.        
+        Args: user_input (str): User's message.        
+        Returns: str: Classified intent.
+        """
         prompt = f"""
         You are an intent classifier for a post-surgery assistant.
 
@@ -58,6 +101,19 @@ class GroqChat:
         return response
 
     def extract_symptoms(self, user_input):
+        """
+        Extract symptoms and related metadata from the user's message.
+        
+        Returns a JSON object containing:
+        - overall_severity: 'mild', 'moderate', 'severe', or 'unknown'
+        - symptoms: list of symptom objects with name, location, duration, severity, onset
+        
+        Args:
+            user_input (str): User's message.
+        
+        Returns:
+            dict: Extracted symptoms and overall severity.
+        """
         prompt = f"""
             Extract symptoms and metadata from the user's message.
             Return ONLY ONE raw JSON object. No Markdown, no comments, no extra text.
@@ -81,7 +137,6 @@ class GroqChat:
             """
         
         response = self.chat_llm.invoke([HumanMessage(content=prompt)]).content.strip()
-        # print("Prompt for symptom extraction:", response)
         try:
             start = response.find("{")
             end   = response.rfind("}")
@@ -94,7 +149,6 @@ class GroqChat:
                 .replace("\u200B", "")   # zero-width space
                 .replace("“", '"').replace("”", '"').replace("’", "'")  # comillas tipográficas
             )
-            # print("JSON text extracted:", json_text)
             data = json.loads(json_text)
             return data
         except Exception as e:
@@ -103,6 +157,16 @@ class GroqChat:
             return {}
 
     def extract_duration_from_text(self, text: str, symptom: str) -> int:
+        """
+        Extract the number of days a symptom has been present from a text message.
+        
+        Args:
+            text (str): The user's message.
+            symptom (str): The symptom to look for.
+        
+        Returns:
+            int: Number of days the symptom has been present. Returns 0 if not mentioned or invalid.
+        """
         prompt = f"""
         The following user message might mention how many days they have had this symptom: {symptom}.
         Extract the number of days (as an integer). If not mentioned, respond with 0.
@@ -120,6 +184,17 @@ class GroqChat:
             return 0
 
     def classify_severity(self, symptom: str, patient_context: dict, duration_days: int) -> str:
+        """
+        Classify the severity of a symptom based on patient context and symptom duration.
+        
+        Args:
+            symptom (str): Symptom to evaluate.
+            patient_context (dict): Patient information including surgery type, medications, and pre-existing conditions.
+            duration_days (int): Number of days the symptom has been present.
+        
+        Returns:
+            str: Severity classification: "mild", "moderate", or "severe".
+        """
         prompt = f"""
         You are a post-surgery symptom triage assistant.
         Consider:
@@ -143,7 +218,16 @@ class GroqChat:
         return response.lower()
     
     def answer_medication_question(self, user_input: str, medication_data: list) -> str:
-        # Formatea el JSON como string para que el modelo lo procese
+        """
+        Answer a user's question about their medication schedule.
+        
+        Args:
+            user_input (str): The user's question about medications.
+            medication_data (list): List of medications and their schedule.
+        
+        Returns:
+            str: AI-generated, concise, and friendly response about medications.
+        """
         medication_json_str = json.dumps(medication_data, indent=2)
 
         prompt = f"""
@@ -167,9 +251,17 @@ class GroqChat:
         return response
     
     def answer_recovery_question(self, user_input: str, recovery_data: list) -> str:
-        # Formatea el JSON como string para que el modelo lo procese
+        """
+        Answer a user's question about their post-surgery recovery tasks or schedule.
+        
+        Args:
+            user_input (str): The user's question about recovery.
+            recovery_data (list): List of recovery tasks and their schedule.
+        
+        Returns:
+            str: AI-generated, concise, and friendly response about recovery.
+        """
         recovery_json_str = json.dumps(recovery_data, indent=2)
-        # print("Recovery JSON:", recovery_json_str)
         prompt = f"""
         You are a helpful assistant that helps users manage their post-surgery recovery tasks and schedules.
 
@@ -193,6 +285,15 @@ class GroqChat:
         return response
 
     def extract_taken_medication(self, user_input: str) -> str:
+        """
+        Extract the name of a medication that the user reports having taken.
+        
+        Args:
+            user_input (str): The user's message confirming medication intake.
+        
+        Returns:
+            str: Exact medication name in lowercase, or "none" if no medication is mentioned.
+        """
         prompt = f"""
         The user may be confirming that they have taken a medication.
 
@@ -207,6 +308,15 @@ class GroqChat:
         return response.lower()
 
     def extract_completed_recovery_task(self, user_input: str) -> str:
+        """
+        Extract the name of a recovery task that the user reports having completed.
+        
+        Args:
+            user_input (str): The user's message confirming completion of a recovery task.
+        
+        Returns:
+            str: Exact recovery task name in lowercase, or "none" if no task is mentioned.
+        """
         prompt = f"""
         The user may be confirming that they have completed a recovery task.
 
@@ -221,6 +331,16 @@ class GroqChat:
         return response.lower()
     
     def is_recovery_related(self, user_input, tracker):
+        """
+        Determine if the user's input refers to any scheduled recovery activities or tasks.
+        
+        Args:
+            user_input (str): User's message.
+            tracker (list): List of recovery activities with "activity" and "time" fields.
+        
+        Returns:
+            bool: True if the input relates to a recovery task, False otherwise.
+        """
         tracker_simplified = [
              {"activity": t["activity"], "time": t["time"]} 
                 for t in tracker
@@ -239,6 +359,16 @@ class GroqChat:
         return response == "yes"
 
     def extract_routine_from_medical_record(self, routine_text, surgery_date):
+        """
+        Extract a structured post-surgical routine from a doctor's instructions.
+        
+        Args:
+            routine_text (str): Doctor's post-surgery instructions.
+            surgery_date (str): Date of surgery.
+        
+        Returns:
+            str: JSON string representing the extracted routine schedule, including activity, frequency, duration, and timing.
+        """
         prompt = f"""
             You are a routine extraction assistant for post-surgical care.
 
@@ -282,6 +412,15 @@ class GroqChat:
     
 
     def extract_followups_from_medical_record (self, followup_list):
+        """
+        Standardize follow-up appointment information from a medical record.
+        
+        Args:
+            followup_list (list): List of follow-up appointment entries from the medical record.
+        
+        Returns:
+            str: JSON string of cleaned and structured follow-up appointments with fields like date, time, department, clinician, and status.
+        """
         prompt = f"""
             You are a clinical assistant. Extract detailed follow-up appointment information from the given entries.
 
@@ -310,6 +449,16 @@ class GroqChat:
         return response
 
     def search_for_tasks_to_mark(self, tasks_str: str, user_input: str) -> str:
+        """
+        Identify which scheduled recovery task the user claims to have completed.
+
+        Args:
+            tasks_str (str): List of today's recovery tasks as a string.
+            user_input (str): User's message.
+
+        Returns:
+            str: Task number matching the user's input, or "none" if no match.
+        """
         prompt = f"""
         These are the recovery tasks scheduled for today near the current time:
         {tasks_str}
@@ -325,6 +474,17 @@ class GroqChat:
         return response
 
     def find_reminder_mentioned(self, user_input, all_reminders):
+        """
+        Determine the user's intent related to reminders and match it to an existing reminder.
+
+        Args:
+            user_input (str): User's message.
+            all_reminders (list): List of all reminder objects.
+
+        Returns:
+            str: A string combining the intent and the matched reminder name, separated by "|",
+                or "none" if unrelated to reminders.
+        """
         unique_tasks = {}
         for reminder in all_reminders:
             name = reminder["activity"].lower()
@@ -373,6 +533,16 @@ class GroqChat:
         return result + "|" + result2
     
     def get_reminder_information(self, user_input, all_reminders):
+        """
+        Check if the user's message refers to any existing reminder and identify its type.
+
+        Args:
+            user_input (str): User's message.
+            all_reminders (list): List of existing reminders with their type.
+
+        Returns:
+            str: "YES|TYPE" if a match is found (TYPE = "personal" or "doctor"), "NO" otherwise.
+        """
         unique_tasks = {}
         for reminder in all_reminders:
             name = reminder["activity"].lower()
@@ -410,6 +580,16 @@ class GroqChat:
         return result
 
     def get_new_reminder(self, user_input, all_reminders):
+        """
+        Determine if the user's message introduces a new reminder not present in the existing list.
+
+        Args:
+            user_input (str): User's message.
+            all_reminders (list): List of existing reminders with their type.
+
+        Returns:
+            str: "NO|" if it is a new reminder, "YES|TYPE" if it matches an existing one.
+        """
         unique_tasks = {}
         for reminder in all_reminders:
             name = reminder["activity"].lower()
@@ -446,6 +626,21 @@ class GroqChat:
         return result
     
     def extract_reminder_info_simple(self, user_input):
+        """
+        Extract structured reminder details from the user's message.
+
+        Args:
+            user_input (str): User's message describing a reminder.
+
+        Returns:
+            str: JSON object with fields:
+                - activity
+                - frequency_per_day
+                - duration_minutes
+                - total_days
+                - preferred_times
+                - notes
+        """
         prompt = f"""
             You are an assistant that extracts reminder details from a user's message.
 

@@ -34,7 +34,7 @@ df["datetime"] = pd.to_datetime(df["date"] + " " + df["time"])
 
 today = datetime.now().date()
 
-# Separar datos pasados y actuales/futuros
+# Separate past and current/future data
 
 past_df = df[df["datetime"].dt.date < today].copy()
 future_df = df[df["datetime"].dt.date >= today].copy()
@@ -42,7 +42,7 @@ future_df = df[df["datetime"].dt.date >= today].copy()
 past_df = past_df.drop(columns=["_id"], errors="ignore")
 future_df = future_df.drop(columns=["_id"], errors="ignore")
 
-# Para fechas pasadas, mostrar columna "taken_status"
+# To preserve past dates, show "taken_status" column
 past_df["taken_status"] = past_df["taken"].apply(lambda x: "✅" if x else "❌")
 past_df_display = past_df[["date", "time", "med_name", "dose", "frequency", "taken_status"]]
 
@@ -56,7 +56,6 @@ else:
     gb = GridOptionsBuilder.from_dataframe(future_df.drop(columns=["datetime"], errors='ignore'))
     gb.configure_pagination(paginationAutoPageSize=True)
     gb.configure_selection('single')
-    # Solo la columna "taken" editable aquí
     gb.configure_column("taken", editable=True, cellEditor='agCheckboxCellEditor', cellEditorParams={"trueValue": True, "falseValue": False})
     gb.configure_column("date", editable=False)
     gb.configure_column("time", editable=False)
@@ -87,7 +86,7 @@ else:
 
 past_df_display_sorted = past_df_display.sort_values(by=["date", "time"], ascending=False)
 
-# Configurar AgGrid para historial
+# Set up AgGrid for history
 gb_past = GridOptionsBuilder.from_dataframe(past_df_display_sorted)
 gb_past.configure_pagination(paginationAutoPageSize=True)
 gb_past.configure_default_column(editable=False, sortable=True, filter=True, resizable=True)

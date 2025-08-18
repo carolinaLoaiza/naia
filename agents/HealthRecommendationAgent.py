@@ -13,8 +13,14 @@ from app.SymptomManager import SymptomManager
 from app.ChatHistoryManager import ChatHistoryManager
 
 def handle_recommendation_query(state):
+    """
+    Generates a health recommendation based on user query,
+    medical records, recent symptoms, and chat context.
+    """    
     user_input = state["input"]
     username = st.session_state["username"]    
+
+    # Build patient record
     medical_record_manager = MedicalRecordManager(username)
     patient_record = {
         "name": medical_record_manager.record.get("name", "Unknown"),
@@ -27,20 +33,22 @@ def handle_recommendation_query(state):
         "past_medical_history": medical_record_manager.record.get("past_medical_history", ""),
         "social_history": medical_record_manager.record.get("social_history", ""),
     }
-    # Obtiene síntomas guardados del usuario desde SymptomManager
+    # Get recent symptoms and chat history
     symptom_manager = SymptomManager(username)
     stored_symptoms = symptom_manager.filter_recent_symptoms(3)
-    # Pasar esos síntomas con severidad y todo al agente de recomendaciones
     chat_history_manager  = ChatHistoryManager(username)
     chat_context = chat_history_manager.load()
+
+    # Generate recommendation
     agent = HealthRecommendationAgent(patient_record)
     recommendation = agent.generate_recommendation(stored_symptoms, chat_context=chat_context,  user_query=user_input)
     recommendation = f"📋 " + recommendation                
     return {"output": recommendation, "username": username}
 
-    #return {"output": f"🗨️ This is a handle_recommendation_query: '{user_input}'"}
-
 def handle_recommendation_query_with_symptoms(state):
+    """
+    Generates a recommendation including all stored symptoms.
+    """
     user_input = state["input"]
     username = st.session_state["username"]
     medical_record_manager = MedicalRecordManager(username)
@@ -55,28 +63,34 @@ def handle_recommendation_query_with_symptoms(state):
         "past_medical_history": medical_record_manager.record.get("past_medical_history", ""),
         "social_history": medical_record_manager.record.get("social_history", ""),
     }
-    # Obtiene síntomas guardados del usuario desde SymptomManager
+    # Include all stored symptoms
     symptom_manager = SymptomManager(username)
-    stored_symptoms = symptom_manager.get_all()
-    
+    stored_symptoms = symptom_manager.get_all()    
     agent = HealthRecommendationAgent(patient_record)
     recommendation = agent.generate_recommendation_with_symptoms(stored_symptoms,  user_query=user_input)
     return {"output": recommendation, "username": username}
 
 class HealthRecommendationAgent:
+    """
+    Generates health recommendations using patient records,
+    symptoms, chat context, and NHS guidelines.
+    """
     def __init__(self, patient_record: Dict):
         self.patient_record = patient_record
         self.groq = GroqChat()        
 
     def build_prompt(self, symptoms: List[Dict], chat_context: Optional[str] = None, user_query = "") -> str:
-        # 1) Aplana síntomas si vienen como entradas históricas
+        """
+        Build the prompt with patient context, symptoms, and NHS guidance.
+        """
+        # Flatten historical symptom records
         flat = []
         for item in symptoms or []:
             if isinstance(item, dict) and "symptoms" in item and isinstance(item["symptoms"], list):
                 flat.extend(item["symptoms"])
             else:
                 flat.append(item)
-        # 2) Contexto del paciente (relevante)
+        # Patient context
         patient_ctx = {
             "gender": self.patient_record.get("gender", "unknown"),
             "age": self.patient_record.get("age", "unknown"),
@@ -87,11 +101,10 @@ class HealthRecommendationAgent:
             "past_medical_history": self.patient_record.get("past_medical_history", []),
             "social_history": self.patient_record.get("social_history", {}),
         }
-        # 3) Serializa a JSON (compacto)
+        # JSON serialization
         patient_json = json.dumps(patient_ctx, ensure_ascii=False, separators=(",", ":"))
         symptoms_json = json.dumps(flat, ensure_ascii=False, separators=(",", ":"))
         nhs_context = self.get_nhs_recommendations(self.patient_record.get("surgery", ""))
-        # 4) Recorta NHS si es muy largo
         nhs_ctx = (nhs_context or "")[:4000]
         patient_name = self.patient_record.get("name", "Patient")
         prompt = textwrap.dedent(f"""
@@ -132,7 +145,10 @@ class HealthRecommendationAgent:
         return prompt
     
     def build_prompt_with_symptoms(self, symptoms: List[Dict], chat_context: Optional[str] = None, user_query = "") -> str:
-        # 1) Aplana síntomas si vienen como entradas históricas
+        """
+        Build the prompt with detailed symptoms included.
+        """
+        # Flatten historical symptom records
         flat = []
         for item in symptoms or []:
             if isinstance(item, dict) and "symptoms" in item and isinstance(item["symptoms"], list):
@@ -140,7 +156,7 @@ class HealthRecommendationAgent:
             else:
                 flat.append(item)
 
-        # 2) Contexto del paciente (relevante)
+        # Patient context
         patient_ctx = {
             "gender": self.patient_record.get("gender", "unknown"),
             "age": self.patient_record.get("age", "unknown"),
@@ -152,11 +168,10 @@ class HealthRecommendationAgent:
             "social_history": self.patient_record.get("social_history", {}),
         }
 
-        # 3) Serializa a JSON (compacto)
+        # JSON serialization
         patient_json = json.dumps(patient_ctx, ensure_ascii=False, separators=(",", ":"))
         symptoms_json = json.dumps(flat, ensure_ascii=False, separators=(",", ":"))
         nhs_context = self.get_nhs_recommendations(self.patient_record.get("surgery", ""))
-        # 4) Recorta NHS si es muy largo
         nhs_ctx = (nhs_context or "")[:4000]
 
         patient_name = self.patient_record.get("name", "Patient")
@@ -199,20 +214,24 @@ class HealthRecommendationAgent:
         return prompt
 
     def generate_recommendation_with_symptoms(self, symptoms: List[Dict], chat_context: Optional[str] = None, user_query="") -> str:
+        """Generate a recommendation including detailed symptoms."""
         prompt = self.build_prompt_with_symptoms(symptoms, chat_context, user_query)
         response = self.groq.get_chat_response(prompt)
         return response.strip()
     
     def generate_recommendation(self, symptoms: List[Dict], chat_context: Optional[str] = None, user_query="") -> str:
+        """Generate a recommendation without including symptom details."""
         prompt = self.build_prompt(symptoms, chat_context, user_query)
         response = self.groq.get_chat_response(prompt)
         return response.strip()
 
     def build_nhs_search_url(self, surgery_name: str) -> str:
+        """Build an NHS search URL for the given surgery."""
         query = "+".join(surgery_name.lower().split())
         return f"https://www.nhs.uk/search/results?q={query}"
 
     def fetch_top_nhs_links(self, url: str, n: int = 2) -> List[str]:
+        """Fetch the top NHS guideline links related to recovery/complications."""
         resp = requests.get(url)
         soup = BeautifulSoup(resp.text, "html.parser")        
         anchors = soup.select("a.app-search-results-item")
@@ -222,15 +241,15 @@ class HealthRecommendationAgent:
             href = a.get("href")
             if not href:
                 continue
-            # Extraer URL final si es un enlace de tracking
+            # Extract final URL if it's a tracking link
             match = re.search(r"url=([^&]+)", href)
             if match:
                 clean_path = requests.utils.unquote(match.group(1))
-                # Validar que el path limpio tenga la estructura esperada
+                # Check if the clean path has the expected structure
                 if "/tests-and-treatments/" not in clean_path:
                     continue
                 full_url = "https://www.nhs.uk" + clean_path
-                # Verifica si alguna palabra clave está en la URL limpia
+                # Check if any keyword is in the clean URL
                 if any(kw in clean_path.lower() for kw in keywords):
                     urls.append(full_url)
             if len(urls) >= n:
@@ -238,12 +257,14 @@ class HealthRecommendationAgent:
         return urls
 
     def fetch_page_text(self, url: str) -> str:
+        """Extract readable text from an NHS page."""
         resp = requests.get(url)
         soup = BeautifulSoup(resp.text, "html.parser")
         paragraphs = soup.select("article p, article li, article h2")
         return "\n".join(p.get_text() for p in paragraphs)
 
     def get_nhs_recommendations(self, surgery_name: str, n: int = 2) -> str:
+        """Retrieve and truncate NHS recommendations for a given surgery."""
         if not surgery_name:
             return "No NHS information available for unknown surgery."
         search_url = self.build_nhs_search_url(surgery_name)
@@ -254,5 +275,5 @@ class HealthRecommendationAgent:
                 all_text += self.fetch_page_text(link) + "\n\n"
             except Exception as e:
                 all_text += f"[Error retrieving content from {link}]: {e}\n\n"
-        truncated = all_text[:4000]  # evita pasar token overflow al modelo
+        truncated = all_text[:4000]  # Prevent token overflow to the model
         return truncated

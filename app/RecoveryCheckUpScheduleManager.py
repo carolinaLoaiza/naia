@@ -9,45 +9,59 @@ from data.DataBaseManager import DatabaseManager
 from app.GroqChat import GroqChat
 
 class RecoveryCheckUpScheduleManager:
+    """
+    Manages the post-surgery recovery check-up and routine schedule for a patient.
+
+    Responsibilities include:
+    - Loading and saving routine/check-up entries from/to the database.
+    - Creating a recovery routine schedule from medical history.
+    - Checking pending routines within a time window.
+    - Marking routines as completed based on user input.
+
+    Attributes:
+        user_id (str): The ID of the patient.
+        collection (pymongo.collection.Collection): The MongoDB collection used to store routines.
+    """
     def __init__(self, user_id):
+        """
+        Initializes the manager with a patient ID and sets up the database collection.
+
+        Args:
+            user_id (str): The unique identifier for the patient.
+        """
         self.user_id = user_id
         db_manager = DatabaseManager()
         self.collection = db_manager.get_collection("routineTracker")
-    # def __init__(self, username):        
-    #     self.history_file = f"data/history_{username}.json"
-    #     self.routine_tracker_file = f"data/routineTracker_{username}.json"
-
-    # def load_medical_record(self):
-    #     if not os.path.exists(self.history_file):
-    #         return []
-    #     with open(self.history_file, "r", encoding="utf-8") as f:
-    #         return json.load(f)
-        
-    # def load_routine_tracker(self):
-    #     with open(self.routine_tracker_file, "r", encoding="utf-8") as f:
-    #         return json.load(f)
+    
     def load_tracker(self):
+        """
+        Loads all routine entries for the current patient from the database.
+
+        Returns:
+            list[dict]: A list of routine/check-up records for the patient.
+        """
         docs = list(self.collection.find({"patient_id": self.user_id}))
         return docs
     
-    # def save_routine_tracker(self, tracker):
-    #     with open(self.routine_tracker_file, "w", encoding="utf-8") as f:
-    #         json.dump(tracker, f, indent=2)
-    
-    # def save_routine_tracker(self, tracker):
-    #     if tracker:
-    #         self.collection_tracker.delete_many({"patient_id": self.user_id})
-    #         self.collection_tracker.insert_many(tracker)
     def save_checkup(self, checkup_data: dict, flag: bool) -> bool:
         """
-        Save a new checkup in the DB
-        checkup_data must contain:
-        - activity: str
-        - date: str 'YYYY-MM-DD'
-        - time: str 'HH:MM' o None
-        - duration_minutes: int
-        - notes: str
-        - type: str (ej: "personal")
+        Saves a new check-up or routine entry to the database.
+
+        checkup_data (dict): A dictionary containing the checkup/routine details:
+                - activity (str): The name of the activity/check-up.
+                - date (str): Date in 'YYYY-MM-DD' format. Defaults to today.
+                - time (str or None): Scheduled time in 'HH:MM'. Optional.
+                - duration_minutes (int): Duration of the activity in minutes.
+                - notes (str): Additional notes. Optional.
+                - type (str): Type of activity (e.g., 'doctor' or 'personal'). Optional.
+                - total_days (int): Total days the activity repeats. Optional.
+                - preferred_times (list[str]): Preferred times per day. Optional.
+                - frequency (int): Times per day the activity should be done. Optional.
+            flag (bool): If True, treat the entry as a doctor-prescribed activity; 
+                         otherwise treat as personal.
+
+        Returns:
+            bool: True if the entry was successfully inserted into the database; False otherwise.
         """
         if flag:
             doc = {
@@ -84,48 +98,44 @@ class RecoveryCheckUpScheduleManager:
             return False
         
     def update_completed_status(self, updated_records):
+        """
+        Updates the 'completed' status of existing routine/check-up entries in the database.
+
+        Args:
+            updated_records (list[dict]): List of records with updated 'completed' field.
+                Each record must contain 'id' or '_id' to identify the database entry.
+        """
         for record in updated_records:
-            record_id = record.get("_id") or record.get("id")  # usar lo que tengas
+            record_id = record.get("_id") or record.get("id")  
             if record_id is None:                
-                continue  # si no hay id, no actualizamos
+                continue 
             self.collection.update_one(
-                {"id": record_id},  # filtro por _id
+                {"id": record_id}, 
                 {"$set": {"completed": record["completed"]}}
             )
-    # def return_routine_info (self):
-    #     if os.path.exists(self.routine_tracker_file):
-    #         return self.load_routine_tracker()
-    #     else:
-    #         return self.create_routine_tracker_from_history()
+    
     def return_routine_info(self):
+        """
+        Retrieves all routine/check-up entries for the patient.
+        If none exist, creates a new tracker based on the patient's medical history.
+
+        Returns:
+            list[dict]: List of routine/check-up entries.
+        """
         tracker = self.load_tracker()
         if tracker:
             return tracker
         return self.create_tracker_from_history()
     
-    # def create_routine_tracker_from_history(self):
-    #     data = self.load_medical_record()
-    #     surgery_date_str = data.get("surgery_date", None)
-    #     self.start_date = datetime.strptime(surgery_date_str, "%Y-%m-%d") if surgery_date_str else datetime.now()
-    #     chat = GroqChat()
-    #     routine_items = data.get("post_surgery_recommendations", {}).get("at_home", [])            
-    #     routine_text = "\n".join(routine_items) if routine_items else ""
-    #     surgery_date_str = data.get("surgery_date", datetime.now().strftime("%Y-%m-%d"))
-    #     surgery_date = datetime.strptime(surgery_date_str, "%Y-%m-%d")
-    #     routine_schedule_generated = []
-    #     if routine_text:
-    #         try:
-    #             routine_schedule_raw = chat.extract_routine_from_medical_record(routine_text, surgery_date)
-    #             routine_schedule_data = json.loads(routine_schedule_raw)
-    #             routine_schedule_generated = self.build_schedule_from_extracted_info(routine_schedule_data, surgery_date)                
-    #         except Exception as e:
-    #             print(f"Error interpreting routine schedule: {e}")
-    #             routine_schedule_generated = []
-    #     else:
-    #         print("No routine text found in medical record.")
-    #     self.save_routine_tracker(routine_schedule_generated)       
-    #     return routine_schedule_generated
+    
     def create_tracker_from_history(self):
+        """
+        Builds the recovery routine tracker from the patient's medical history.
+        Uses GroqChat to parse textual recommendations from the medical record.
+
+        Returns:
+            list[dict]: A list of generated routine/check-up entries.
+        """
         medicalRecordManager = MedicalRecordManager(self.user_id)
         history_data = medicalRecordManager.load_record()
         if not history_data:
@@ -145,7 +155,7 @@ class RecoveryCheckUpScheduleManager:
             except Exception as e:
                 print(f"Error interpreting routine schedule: {e}")
         if tracker_docs:
-            # asignar IDs únicos y patient_id
+            # assign unique IDs and patient ID to each entry
             for t in tracker_docs:
                 t["id"] = str(uuid4())
                 t["patient_id"] = self.user_id
@@ -153,6 +163,17 @@ class RecoveryCheckUpScheduleManager:
         return tracker_docs
     
     def build_schedule_from_extracted_info(self, info_list, surgery_date):
+        """
+        Converts extracted routine information into individual scheduled tasks.
+
+        Args:
+            info_list (list[dict]): List of tasks with fields like 'activity', 'start_offset_days',
+                                    'preferred_times', 'frequency_per_day', 'total_days'.
+            surgery_date (datetime): The surgery date to calculate offsets from.
+
+        Returns:
+            list[dict]: List of scheduled routine/check-up entries.
+        """
         all_schedules = []
         for info in info_list:
             start_date = surgery_date + timedelta(days=info.get("start_offset_days", 0))
@@ -204,13 +225,22 @@ class RecoveryCheckUpScheduleManager:
         return all_schedules
 
     def check_pending_routines(self, window_minutes=30):
+        """
+        Checks for routines scheduled within a ±window around the current time.
+
+        Args:
+            window_minutes (int): Minutes before/after current time to check.
+
+        Returns:
+            list[str]: List of upcoming routines formatted as readable strings.
+        """
         now = datetime.now()
         start = now - timedelta(minutes=window_minutes)
         end = now + timedelta(minutes=window_minutes)
         tracker = self.load_tracker()
         upcoming = []
         for task in tracker:
-            # Ignorar tareas ya completadas o las que no tienen hora (ongoing)
+            # Ignore completed tasks or those without a time (ongoing)
             if task.get("completed") or not task.get("time"):
                 continue
             dt_str = f"{task['date']} {task['time']}"
@@ -224,13 +254,24 @@ class RecoveryCheckUpScheduleManager:
         return upcoming
 
     def mark_task_as_done(self, user_input: str):
+        """
+        Marks a routine task as completed based on user input and time proximity.
+
+        Args:
+            user_input (str): Text input from the user indicating which task was completed.
+
+        Returns:
+            tuple[str or None, bool or None]: 
+                - Name of the completed task, or None if none matched.
+                - Boolean indicating whether the task was already completed, or None.
+        """
         chat = GroqChat()
         tracker = self.load_tracker()
         if not tracker:
             return None, None
         now = datetime.now()
         today_str = now.strftime("%Y-%m-%d")
-        # Filtrar solo tareas de hoy ± 1 horas
+        # Filter only today's tasks ± 1 hours
         tasks_today = []
         for entry in tracker:
             if entry.get("date") != today_str:

@@ -9,11 +9,11 @@ st.set_page_config(
     initial_sidebar_state="collapsed"  # o "collapsed"
 )
 
-# URL de tu recurso en MockAPI
+# URL of MockAPI
 USERS_API_URL = "https://689c738058a27b18087e39e2.mockapi.io/mock_nhs_api/v1/naia_users"  # reemplaza con tu URL real
 
 
-# 1. Traer usuarios desde MockAPI
+# Bring the user from MockAPI
 try:
     response = requests.get(USERS_API_URL)
     response.raise_for_status()
@@ -23,14 +23,14 @@ except requests.RequestException as e:
     st.stop()
 
 
-# 2. Convertir usuarios al formato de streamlit_authenticator
+# Convert users to streamlit_authenticator format
 config = {
     "credentials": {
         "usernames": {}
     },
     "cookie": {
         "name": "naia_session",
-        "key": "hackathon2025",  # cámbiala a algo único
+        "key": "hackathon2025",  
         "expiry_days": 1
     }
 }
@@ -50,13 +50,13 @@ authenticator = stauth.Authenticate(
     config['cookie']['expiry_days']
 )
 
-st.write("Please enter your :blue[**NHS ID**] as your username.")
+if "authentication_status" not in st.session_state or st.session_state['authentication_status'] is None:
+    st.write("Please enter your :blue[**NHS ID**] as your username.")
+
 try:
     authenticator.login()
 except stauth.AuthenticationError as e:
     st.error(e)
-
-
 
 # Authenticating user
 if st.session_state['authentication_status']: 

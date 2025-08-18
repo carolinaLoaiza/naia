@@ -7,6 +7,18 @@ from app.RecoveryCheckUpScheduleManager import RecoveryCheckUpScheduleManager
 
 
 def handle_reminder_medication_query(state):
+    """
+    Handles queries related to medication reminders.
+    - Checks today's medication schedule
+    - Marks medications as taken
+    - Answers medication-related questions
+
+    Args:
+        state (dict): Contains "input" (user message) and "username".
+
+    Returns:
+        dict: {"output": str} with the assistant's response.
+    """
     user_input = state["input"]
     username = state.get("username", "user1")  # default fallback
     medicationScheduleManager = MedicationScheduleManager(username)
@@ -37,6 +49,18 @@ def handle_reminder_medication_query(state):
     }
 
 def handle_reminder_recovery_query(state):
+    """
+    Handles queries related to recovery/check-up reminders.
+    - Consults existing reminders
+    - Marks reminders as done
+    - Handles reminder CRUD operations
+
+    Args:
+        state (dict): Contains "input" (user message) and "username".
+
+    Returns:
+        dict: {"output": str} with the assistant's response.
+    """
     user_input = state["input"]
     username = state.get("username", "user1")
     recoveryManager = RecoveryCheckUpScheduleManager(username)
@@ -94,6 +118,16 @@ def handle_reminder_recovery_query(state):
             return {"output": "This message doesn't seem related to any reminders."}
 
 def handle_crud_reminder (state, all_reminders):
+    """
+    Handles CRUD operations (create, update, delete) for recovery reminders.
+
+    Args:
+        state (dict): Contains "input" (user message) and "username".
+        all_reminders (list): List of current reminders.
+
+    Returns:
+        dict: {"output": str} with the assistant's response.
+    """
     user_input = state["input"]
     username = state.get("username", "user1")    
     recoveryManager = RecoveryCheckUpScheduleManager(username)

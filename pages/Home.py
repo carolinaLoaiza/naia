@@ -63,7 +63,7 @@ else:
 
 
 
-# Función para renderizar cada acceso
+# Function to render each access
 def render_access(title, description, icon_path, page_url=None):
     st.image(icon_path, width=200)
     st.markdown(f"### {title}")
@@ -71,7 +71,7 @@ def render_access(title, description, icon_path, page_url=None):
     if st.button(f"Go to {title}", key=title):
         st.switch_page(page_url) if page_url else st.info("Page not available")
 
-# ---- Diseño en 2x2 ----
+# ---- Design in 3x2 ----
 col1, col2, col3 = st.columns(3)
 with col1:
     render_access("Chat", "Talk to NAIA for guidance, questions, and post-op support", icons["Chat"], "pages/Chat.py")

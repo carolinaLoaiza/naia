@@ -6,6 +6,28 @@ from typing import List, Dict, Optional
 import requests
 
 class MedicalRecordManager:
+    """
+    Class for managing and accessing a patient's medical record from a mock NHS API.
+
+    Attributes:
+        username (str): The patient ID or username used to fetch the record.
+        api_url (str): Base URL of the mock NHS API.
+        record (dict): Loaded medical record for the patient.
+
+    Methods:
+        load_record() -> dict:
+            Fetches the patient's medical record from the API.
+            Returns the record as a dictionary, or None if not found or on error.
+        
+        get_patient_info() -> dict:
+            Returns a simplified dictionary of the patient's basic information:
+            - patient_id
+            - name
+            - age
+            - gender
+            - phone
+            - location
+    """
     def __init__(self, username: str):
         self.username = username
         self.api_url = "https://689c738058a27b18087e39e2.mockapi.io/mock_nhs_api/v1/patients"
