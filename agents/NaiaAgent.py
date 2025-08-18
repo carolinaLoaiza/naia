@@ -6,22 +6,42 @@ import streamlit as st
 router = GroqChat()
 
 class NaiaAgent:
+    """
+    Agent responsible for handling patient interactions related to symptoms.
+    """
     def __init__(self, medical_record: dict):
         self.medical_record = medical_record
 
     def handle_symptom_notification(self, symptom: str, severity: str):
+        """
+        Processes a reported symptom and returns a recommendation.
+
+        Args:
+            symptom (str): The reported symptom (e.g., "nausea", "pain").
+            severity (str): The severity classification (e.g., "mild", "severe").
+
+        Returns:
+            str: The generated recommendation for the symptom.
+        """
         print(f"📬 NaiaAgent received the symptom '{symptom}' con severidad '{severity}'")
         state = {
             "input": f"I have the symptom '{symptom}' classified as '{severity}'. What medical recommendations are there?",
             "username": st.session_state.get("username")
         }
         response = handle_recommendation_query_with_symptoms(state)
-        #print("💡 Recommendation sent by NaiaAgent:", response.get("output"))
         return response.get("output", "")
 
-
-
 def classify_intent(state: dict) -> str:
+    """
+    Classifies the user's input into a specific agent type
+    (e.g., symptom_agent, reminder_agent, medical_record_agent).
+
+    Args:
+        state (dict): Current interaction state containing the user input.
+
+    Returns:
+        str: The selected agent category.
+    """
     user_input = state["input"]
 
     prompt = f"""
@@ -59,7 +79,7 @@ def classify_intent(state: dict) -> str:
     User message: "{user_input}"
     """
 
-    result = router.get_chat_response(prompt)  # or whatever call you use
-    print("Routing to:", result)  # <-- esto
+    result = router.get_chat_response(prompt)  
+    print("Routing to:", result)  
     return result.strip().lower()
 
