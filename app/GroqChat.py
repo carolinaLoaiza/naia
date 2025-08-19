@@ -375,12 +375,15 @@ class GroqChat:
             Given the following doctor's instruction: {routine_text}
             Given this surgery date: {surgery_date},
             
-            Please extract ONLY the post-surgical routine activities that specify at least two of three of the following clearly or implicitly:
-            - frequency_per_day (times per day, integer greater than zero),
-            - duration_minutes (minutes per session, integer greater than zero),
-            - total_days (total number of days, integer greater than zero).
+            Please extract ALL the post-surgical routine activities.  
 
-            If an instruction lacks two or more of these, exclude it completely from the output.
+            For each activity:  
+            - If frequency_per_day, duration_minutes, and total_days are specified (clearly or implicitly), fill them with their correct values.  
+            - If they are not specified, set them to 0 (frequency_per_day = 0, duration_minutes = 0, total_days = 0).  
+            - Always include start_offset_days (0 = same day as surgery, 1 = one day after, etc.), preferred_times (explicit list or empty list), and notes (any clarifications or “while resting”, “ongoing”, etc. if mentioned).  
+
+            Do NOT exclude any activity. Every instruction must become a JSON object. 
+            
 
             Please provide ONLY the JSON array representing the routine schedule.
             Do NOT include any explanations or extra text.
@@ -397,9 +400,9 @@ class GroqChat:
 
             Extract the following fields as JSON:
             - activity: short name of the activity (e.g., "Apply ice to the knee")
-            - frequency_per_day: how many times per day (integer)
-            - duration_minutes: how long each session lasts (in minutes)
-            - total_days: for how many days (integer)
+            - frequency_per_day: how many times per day (integer) or empty if not specified
+            - duration_minutes: how long each session lasts (in minutes) or 0 if not specified
+            - total_days: for how many days (integer) or 0 if not specified
             - start_offset_days: when to start (0 = same day as surgery, 1 = one day after, etc.)
             - preferred_times: list of time strings (["09:00", "15:00"]) or empty if not specified
             - notes: optional clarifications
@@ -423,9 +426,9 @@ class GroqChat:
         """
         prompt = f"""
             You are a clinical assistant. Extract detailed follow-up appointment information from the given entries.
-
+            
             The input is a list of follow-up appointments as found in a patient’s medical record. Some fields may be missing or inconsistent.
-
+            Your ONLY task is to output a valid JSON array.
             Your task:
             - For **each** appointment, output a standardized object with the following fields:
                 - date: in YYYY-MM-DD format
@@ -441,7 +444,8 @@ class GroqChat:
             Instructions:
             - Do NOT exclude any appointment, even if some values are missing or empty.
             - Only output a JSON array of cleaned appointments. No Markdown, no explanations, no formatting.
-
+            - Do NOT add any extra text, titles, explanations, or comments.
+            - Return ONLY ONE valid JSON array.
             Follow-up entries:
             {json.dumps(followup_list, indent=2)}
             """          
