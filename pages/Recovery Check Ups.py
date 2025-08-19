@@ -32,10 +32,10 @@ if not routine_tracker:
     st.stop()
 
 df = pd.DataFrame(routine_tracker)
+
 # Filter activities ongoing and programed
 ongoing_df = df[df["is_ongoing"] == True].copy()
 scheduled_df = df[df["is_ongoing"] != True].copy()
-
 
 
 scheduled_df["datetime"] = pd.to_datetime(scheduled_df["date"] + " " + scheduled_df["time"])
