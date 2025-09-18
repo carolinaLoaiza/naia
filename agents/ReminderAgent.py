@@ -151,7 +151,8 @@ def handle_crud_reminder (state, all_reminders):
         notes = reminder_info.get("notes", "")
         date = datetime.today()
         # now = datetime.now()
-        now = datetime.now(ZoneInfo("Europe/London"))
+        tz = ZoneInfo("Europe/London")
+        now = datetime.now(tz)
         if ((frequency_per_day == 0 and not preferred_times) 
                 or ( frequency_per_day == 0 and total_days == 0)
                 or (not preferred_times and total_days == 0)):
@@ -185,7 +186,7 @@ def handle_crud_reminder (state, all_reminders):
                     for time_str in preferred_times:
                         reminder_dt = datetime.strptime(
                             f"{dateTo.strftime('%Y-%m-%d')} {time_str}", "%Y-%m-%d %H:%M"
-                        )                        
+                        ).replace(tz)                        
                         if reminder_dt <= now:
                             continue
                         new_checkup = {
@@ -206,7 +207,7 @@ def handle_crud_reminder (state, all_reminders):
                         time_str = f"{9 + j * 5:02d}:00"  # Ej: 09:00, 14:00, 19:00...
                         reminder_dt = datetime.strptime(
                             f"{dateTo.strftime('%Y-%m-%d')} {time_str}", "%Y-%m-%d %H:%M"
-                        )                        
+                        ).replace(tz)                        
                         if reminder_dt <= now:
                             continue
                         new_checkup = {
