@@ -256,12 +256,8 @@ class RecoveryCheckUpScheduleManager:
     def mark_task_as_done(self, user_input: str):
         """
         Marks a routine task as completed based on user input and time proximity.
-
-        Args:
-            user_input (str): Text input from the user indicating which task was completed.
-
-        Returns:
-            tuple[str or None, bool or None]: 
+        Args: user_input (str): Text input from the user indicating which task was completed.
+        Returns: tuple[str or None, bool or None]: 
                 - Name of the completed task, or None if none matched.
                 - Boolean indicating whether the task was already completed, or None.
         """

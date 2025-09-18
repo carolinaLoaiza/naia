@@ -49,6 +49,8 @@ def get_upcoming_medication(username):
     Returns:
         list: Reminder messages for medications that are due soon.
     """
+    medicalRecordManager = MedicalRecordManager(username)
+    patient_name = medicalRecordManager.record.get("name", "Patient")
     now = datetime.now()
     start = now - timedelta(minutes=1)
     end = now + timedelta(minutes=1)
@@ -62,7 +64,7 @@ def get_upcoming_medication(username):
         try:
             dt = datetime.strptime(dt_str, "%Y-%m-%d %H:%M")
             if start <= dt <= end:
-                upcoming.append(f"It is time to take {med['med_name']} - ({med['dose']})")
+                upcoming.append(f"{patient_name}, it is time to take {med['med_name']} - ({med['dose']})")
         except Exception as e:
             print(f"Error parsing med datetime: {e}")
             continue
@@ -78,6 +80,8 @@ def get_upcoming_appointments(username):
     Returns:
         list: Reminder messages for upcoming appointments.
     """
+    medicalRecordManager = MedicalRecordManager(username)
+    patient_name = medicalRecordManager.record.get("name", "Patient")
     now = datetime.now()
     start = now
     end = now + timedelta(hours=24)
@@ -92,7 +96,7 @@ def get_upcoming_appointments(username):
             dt = datetime.strptime(dt_str, "%Y-%m-%d %H:%M")
             if start <= dt <= end:
                 upcoming.append(
-                    f"Reminder: {appointment['department']} at {appointment['location']} "
+                    f"{patient_name}, Reminder: {appointment['department']} at {appointment['location']} "
                     f"with {appointment['clinician']} on {appointment['date']} at {dt.strftime('%H:%M')}"
                 )
                 appointmentManager.mark_reminder_as_sent(appointment['date'], appointment['time'])
@@ -117,6 +121,7 @@ def monitoring(user):
         st.session_state.sent_reminders = set()
     while True:
         upcoming_meds = get_upcoming_medication(username)
+        print(f"Upcoming meds: {upcoming_meds}")
         if upcoming_meds: 
             meds_to_send = [med for med in upcoming_meds if med not in st.session_state.sent_reminders]
             if meds_to_send:
@@ -131,6 +136,7 @@ def monitoring(user):
                             st.session_state.sent_reminders.add(med)
         # Appointment reminders
         upcoming_appts = get_upcoming_appointments(username)
+        print(f"Upcoming appointments: {upcoming_appts}")
         appts_to_send = [appt for appt in upcoming_appts if appt not in st.session_state.sent_reminders]
         if appts_to_send:
             medicalRecordManager = MedicalRecordManager(username)
