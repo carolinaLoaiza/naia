@@ -1,4 +1,5 @@
 import json
+from zoneinfo import ZoneInfo
 from app.GroqChat import GroqChat
 from datetime import datetime
 import streamlit as st
@@ -139,7 +140,8 @@ class SymptomAgent:
         severity = self.classify_severity_llm(text, duration_days)
 
         # Save symptom entry
-        now = datetime.now().isoformat()
+        zn = ZoneInfo("Europe/London")
+        now = datetime.now(zn).isoformat()
         entry = {
             "timestamp": now,
             "symptoms": data.get("symptoms", []),
@@ -172,9 +174,10 @@ class SymptomAgent:
         Returns:
             int: Duration in days (defaults to 1 if not found).
         """
+        zn = ZoneInfo("Europe/London")
         for entry in self.symptom_history:
             if entry["symptom"].lower() == symptom.lower():
                 timestamp = datetime.fromisoformat(entry["timestamp"])
-                return (datetime.now() - timestamp).days + 1
+                return (datetime.now(zn) - timestamp).days + 1
         return 1
     

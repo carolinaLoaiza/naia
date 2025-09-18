@@ -1,3 +1,4 @@
+from zoneinfo import ZoneInfo
 import streamlit as st
 import json
 import os
@@ -58,8 +59,8 @@ if not ongoing_df.empty:
             details = " | ".join(extra_info)
             notes = row.get("notes", "")
             st.markdown(f"- **{row['activity']}**: {notes}{'  \n' + details if details else ''}")
-
-today = datetime.now().date()
+zn = ZoneInfo("Europe/London")
+today = datetime.now(zn).date()
 past_df = scheduled_df[scheduled_df["datetime"].dt.date < today].copy()
 future_df = scheduled_df[scheduled_df["datetime"].dt.date >= today].copy()
 

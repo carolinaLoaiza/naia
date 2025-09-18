@@ -1,6 +1,7 @@
 import base64
 import datetime
 import random
+from zoneinfo import ZoneInfo
 import streamlit as st
 from streamlit_chat_widget import chat_input_widget
 from openai import OpenAI
@@ -101,7 +102,8 @@ else:
 
 if "welcome_shown" not in st.session_state:
     st.session_state.welcome_shown = True
-    hour = datetime.datetime.now().hour
+    zn = ZoneInfo("Europe/London")
+    hour = datetime.now(zn).hour
     if hour < 12:
         greeting = "Good morning"
     elif hour < 18:

@@ -2,6 +2,7 @@ from datetime import datetime, timedelta
 import os
 import json
 from uuid import uuid4
+from zoneinfo import ZoneInfo
 
 from data.DataBaseManager import DatabaseManager
 
@@ -35,8 +36,9 @@ class SymptomManager:
         Returns:
             dict: The stored entry with added 'timestamp', 'patient_id', and unique 'id'.
         """
+        zn = ZoneInfo("Europe/London")
         if "timestamp" not in entry:
-            entry["timestamp"] = datetime.now().isoformat()
+            entry["timestamp"] = datetime.now(zn).isoformat()
         entry["patient_id"] = self.user_id
         entry["id"] = str(uuid4())
         self.collection.insert_one(entry)
@@ -64,7 +66,8 @@ class SymptomManager:
     
     def filter_recent_symptoms(self, daysDefined):
         """Filter symptoms recent according to the range of days."""
-        cutoff = datetime.now() - timedelta(days=daysDefined)
+        zn = ZoneInfo("Europe/London")
+        cutoff = datetime.now(zn) - timedelta(days=daysDefined)
         cutoff_str = cutoff.isoformat()
 
         cursor = self.collection.find({
