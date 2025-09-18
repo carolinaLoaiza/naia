@@ -50,10 +50,11 @@ def get_upcoming_medication(username):
     Returns:
         list: Reminder messages for medications that are due soon.
     """
+    tz = ZoneInfo("Europe/London")
     medicalRecordManager = MedicalRecordManager(username)
     patient_name = medicalRecordManager.record.get("name", "Patient")
     # now = datetime.now()
-    now = datetime.now(ZoneInfo("Europe/London"))
+    now = datetime.now(tz)
     start = now - timedelta(minutes=1)
     end = now + timedelta(minutes=1)
     medicationScheduleManager = MedicationScheduleManager(username)
@@ -66,7 +67,8 @@ def get_upcoming_medication(username):
         dt_str = f"{med['date']} {med['time']}"
         print(dt_str)
         try:
-            dt = datetime.strptime(dt_str, "%Y-%m-%d %H:%M")
+            # dt = datetime.strptime(dt_str, "%Y-%m-%d %H:%M")
+            dt = datetime.strptime(dt_str, "%Y-%m-%d %H:%M").replace(tzinfo=tz)
             print(f"Comparing {dt} with {start} and {end}")
             if start <= dt <= end:
                 print(f"Upcoming medication: {med['med_name']} - ({med['dose']})")
@@ -87,10 +89,11 @@ def get_upcoming_appointments(username):
     Returns:
         list: Reminder messages for upcoming appointments.
     """
+    tz = ZoneInfo("Europe/London")
     medicalRecordManager = MedicalRecordManager(username)
     patient_name = medicalRecordManager.record.get("name", "Patient")
     # now = datetime.now()
-    now = datetime.now(ZoneInfo("Europe/London"))
+    now = datetime.now(tz)
     start = now
     end = now + timedelta(hours=24)
     appointmentManager = AppointmentManager(username)
@@ -101,7 +104,7 @@ def get_upcoming_appointments(username):
             continue
         dt_str = f"{appointment['date']} {appointment['time']}"
         try:
-            dt = datetime.strptime(dt_str, "%Y-%m-%d %H:%M")
+            dt = datetime.strptime(dt_str, "%Y-%m-%d %H:%M").replace(tz)
             if start <= dt <= end:
                 upcoming.append(
                     f"{patient_name}, Reminder: {appointment['department']} at {appointment['location']} "
