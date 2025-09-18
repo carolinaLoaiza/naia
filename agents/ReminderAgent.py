@@ -1,6 +1,7 @@
 import os
 import json
 from datetime import datetime, timedelta
+from zoneinfo import ZoneInfo
 from app.GroqChat import GroqChat
 from app.MedicationScheduleManager import MedicationScheduleManager
 from app.RecoveryCheckUpScheduleManager import RecoveryCheckUpScheduleManager
@@ -25,7 +26,8 @@ def handle_reminder_medication_query(state):
     tracker = medicationScheduleManager.load_tracker()
     if not tracker:
         return {"output": "There is no medication data available to display."}
-    today_str = datetime.now().strftime("%Y-%m-%d")
+    now = datetime.now(ZoneInfo("Europe/London"))
+    today_str = now.strftime("%Y-%m-%d")
     tracker_today = [t for t in tracker if t.get("date") == today_str]
     chat = GroqChat()
     taken_med = chat.extract_taken_medication(user_input)
@@ -76,8 +78,9 @@ def handle_reminder_recovery_query(state):
         if action == "consult_existing":
             print(f"User wants to consult about reminder: {reminder_name}")
             if not all_reminders:
-                return {"output": "There are no recovery tasks scheduled."}    
-            today_str = datetime.now().strftime("%Y-%m-%d")
+                return {"output": "There are no recovery tasks scheduled."}  
+            now = datetime.now(ZoneInfo("Europe/London"))  
+            today_str = now.strftime("%Y-%m-%d")
             # tracker_today = [t for t in all_reminders if t.get("date") == today_str]
 
             tracker_today = [
@@ -95,8 +98,9 @@ def handle_reminder_recovery_query(state):
         elif action == "mark_done_existing":
             print(f"User wants to mark done reminder: {reminder_name}")
             if not all_reminders:
-                return {"output": "There are no recovery tasks scheduled."}    
-            today_str = datetime.now().strftime("%Y-%m-%d")
+                return {"output": "There are no recovery tasks scheduled."}   
+            now = datetime.now(ZoneInfo("Europe/London")) 
+            today_str = now.strftime("%Y-%m-%d")
             tracker_today = [t for t in all_reminders if t.get("date") == today_str]
             # done_task = chat.extract_completed_recovery_task(user_input)
             done_task = reminder_name
@@ -146,7 +150,8 @@ def handle_crud_reminder (state, all_reminders):
         preferred_times = reminder_info.get("preferred_times", [])
         notes = reminder_info.get("notes", "")
         date = datetime.today()
-        now = datetime.now()
+        # now = datetime.now()
+        now = datetime.now(ZoneInfo("Europe/London"))
         if ((frequency_per_day == 0 and not preferred_times) 
                 or ( frequency_per_day == 0 and total_days == 0)
                 or (not preferred_times and total_days == 0)):

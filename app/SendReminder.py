@@ -2,6 +2,7 @@ from datetime import datetime, timedelta
 import re
 import threading
 import time
+from zoneinfo import ZoneInfo
 from twilio.rest import Client
 import streamlit as st
 
@@ -51,23 +52,29 @@ def get_upcoming_medication(username):
     """
     medicalRecordManager = MedicalRecordManager(username)
     patient_name = medicalRecordManager.record.get("name", "Patient")
-    now = datetime.now()
+    # now = datetime.now()
+    now = datetime.now(ZoneInfo("Europe/London"))
     start = now - timedelta(minutes=1)
     end = now + timedelta(minutes=1)
     medicationScheduleManager = MedicationScheduleManager(username)
     tracker = medicationScheduleManager.load_tracker()
     upcoming = []
     for med in tracker:
+        print(med)
         if med.get("taken"):
             continue
         dt_str = f"{med['date']} {med['time']}"
+        print(dt_str)
         try:
             dt = datetime.strptime(dt_str, "%Y-%m-%d %H:%M")
+            print(f"Comparing {dt} with {start} and {end}")
             if start <= dt <= end:
+                print(f"Upcoming medication: {med['med_name']} - ({med['dose']})")
                 upcoming.append(f"{patient_name}, it is time to take {med['med_name']} - ({med['dose']})")
         except Exception as e:
             print(f"Error parsing med datetime: {e}")
             continue
+    print(f"Upcoming meds to take: {upcoming}")    
     return upcoming
 
 def get_upcoming_appointments(username):
@@ -82,7 +89,8 @@ def get_upcoming_appointments(username):
     """
     medicalRecordManager = MedicalRecordManager(username)
     patient_name = medicalRecordManager.record.get("name", "Patient")
-    now = datetime.now()
+    # now = datetime.now()
+    now = datetime.now(ZoneInfo("Europe/London"))
     start = now
     end = now + timedelta(hours=24)
     appointmentManager = AppointmentManager(username)
