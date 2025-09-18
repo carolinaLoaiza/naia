@@ -3,6 +3,7 @@ import json
 import os
 from datetime import datetime, timedelta, time
 from uuid import uuid4
+from zoneinfo import ZoneInfo
 from app.MedicalRecordManager import MedicalRecordManager
 from data.DataBaseManager import DatabaseManager
 
@@ -45,7 +46,8 @@ class MedicationScheduleManager:
         Returns:
             list: Formatted list of upcoming medications within the time window.
         """
-        now = datetime.now()
+        zn = ZoneInfo("Europe/London")
+        now = datetime.now(zn)
         start = now - timedelta(minutes=window_minutes)
         end = now + timedelta(minutes=window_minutes)
         tracker = self.load_tracker()
@@ -55,7 +57,7 @@ class MedicationScheduleManager:
                 continue
             dt_str = f"{med['date']} {med['time']}"
             try:
-                dt = datetime.strptime(dt_str, "%Y-%m-%d %H:%M")
+                dt = datetime.strptime(dt_str, "%Y-%m-%d %H:%M").replace(tzinfo=zn)
                 if start <= dt <= end:
                     upcoming.append(f"- 💊 {med['med_name']} ({med['dose']}) - {med['time']}")
             except:
@@ -73,7 +75,8 @@ class MedicationScheduleManager:
         Returns:
             tuple: (med_name (str) if marked, already_taken (bool))
         """
-        now = datetime.now()
+        zn = ZoneInfo("Europe/London")
+        now = datetime.now(zn)
         today_str = now.strftime("%Y-%m-%d")
         window_minutes = 30
         tracker = self.load_tracker()
@@ -82,7 +85,7 @@ class MedicationScheduleManager:
             if med.get("date") != today_str or med.get("taken"):
                 continue
             try:
-                med_time = datetime.strptime(f"{med['date']} {med['time']}", "%Y-%m-%d %H:%M")
+                med_time = datetime.strptime(f"{med['date']} {med['time']}", "%Y-%m-%d %H:%M").replace(tzinfo=zn)
             except:
                 continue
             if abs((med_time - now).total_seconds()) <= window_minutes * 60:
@@ -109,13 +112,15 @@ class MedicationScheduleManager:
         Returns:
             list: List of created medication tracker documents.
         """
+        zn = ZoneInfo("Europe/London")
         medicalRecordManager = MedicalRecordManager(self.user_id)
         history_data = medicalRecordManager.load_record()
         if not history_data:
             print("No medical history found to create medication tracker.")
             return []
         surgery_date_str = history_data.get("surgery_date", None)
-        start_date = datetime.strptime(surgery_date_str, "%Y-%m-%d") if surgery_date_str else datetime.now()        
+        now = datetime.now(zn)
+        start_date = datetime.strptime(surgery_date_str, "%Y-%m-%d").replace(zn) if surgery_date_str else now     
         frequency_schedule = {
             "6x/day": [time(6, 0), time(10, 0), time(14, 0), time(18, 0), time(22, 0), time(2, 0)],
             "5x/day": [time(7, 0), time(11, 0), time(15, 0), time(19, 0), time(23, 0)],
@@ -132,9 +137,9 @@ class MedicationScheduleManager:
             scheduled_times = frequency_schedule.get(freq, [time(9,0)])
             for day_offset in range(days):
                 day_date = start_date + timedelta(days=day_offset)
-                day_str = day_date.strftime("%Y-%m-%d")
+                day_str = day_date.strftime("%Y-%m-%d").replace(tzinfo=zn)
                 for t in scheduled_times:
-                    time_str = t.strftime("%H:%M")
+                    time_str = t.strftime("%H:%M").replace(tzinfo=zn)
                     tracker_docs.append({
                          "id": str(uuid4()), 
                         "patient_id": self.user_id,

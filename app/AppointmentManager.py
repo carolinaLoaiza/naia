@@ -2,6 +2,7 @@ import json
 from datetime import datetime, timedelta
 import os
 from uuid import uuid4
+from zoneinfo import ZoneInfo
 from app.GroqChat import GroqChat
 from app.MedicalRecordManager import MedicalRecordManager
 from data.DataBaseManager import DatabaseManager
@@ -70,8 +71,9 @@ class AppointmentManager:
         Returns:
             str: "Yes" if completed, "No" if past and not completed, otherwise if upcoming.
         """        
-        today = datetime.now().date()
-        date_obj = datetime.strptime(date_str, "%Y-%m-%d").date()
+        zn = ZoneInfo("Europe/London")
+        today = datetime.now(zn).date()
+        date_obj = datetime.strptime(date_str, "%Y-%m-%d").replace(tzinfo=zn).date()
         if flag is True:
             return "✅ Yes"
         elif date_obj < today:
@@ -115,7 +117,8 @@ class AppointmentManager:
         Returns:
             list[str]: Formatted list of upcoming appointments.
         """
-        now = datetime.now()
+        zn = ZoneInfo("Europe/London")
+        now = datetime.now(zn)
         start = now
         end = now + timedelta(hours=window_hours)
         tracker = self.load_appointment_tracker()
@@ -125,7 +128,7 @@ class AppointmentManager:
                 continue
             dt_str = f"{appt['date']} {appt.get('time', '09:00')}"
             try:
-                dt = datetime.strptime(dt_str, "%Y-%m-%d %H:%M")
+                dt = datetime.strptime(dt_str, "%Y-%m-%d %H:%M").replace(tzinfo=zn)
                 if start <= dt <= end:
                     location_info = f" at {appt['location']}" if appt.get("location") else ""
                     reason = appt.get("reason", "")

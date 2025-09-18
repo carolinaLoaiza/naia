@@ -3,6 +3,7 @@ import json
 import os
 import difflib
 from uuid import uuid4
+from zoneinfo import ZoneInfo
 from app.MedicalRecordManager import MedicalRecordManager
 from data.DataBaseManager import DatabaseManager
 
@@ -63,12 +64,13 @@ class RecoveryCheckUpScheduleManager:
         Returns:
             bool: True if the entry was successfully inserted into the database; False otherwise.
         """
+        zn = ZoneInfo("Europe/London")
         if flag:
             doc = {
             "id": str(uuid4()),
             "patient_id": self.user_id,
             "activity": checkup_data.get("activity"),
-            "date": checkup_data.get("date", datetime.now().strftime("%Y-%m-%d")),
+            "date": checkup_data.get("date", datetime.now(zn).strftime("%Y-%m-%d")),
             "time": checkup_data.get("time"),  # puede ser None
             "total_days": checkup_data.get("total_days"),  # puede ser None
             "preferred_times": checkup_data.get("preferred_times"),  # puede ser None
@@ -85,7 +87,7 @@ class RecoveryCheckUpScheduleManager:
                 "id": str(uuid4()),
                 "patient_id": self.user_id,
                 "activity": checkup_data.get("activity"),
-                "date": checkup_data.get("date", datetime.now().strftime("%Y-%m-%d")),
+                "date": checkup_data.get("date", datetime.now(zn).strftime("%Y-%m-%d")),
                 "time": checkup_data.get("time"),  # puede ser None
                 "duration_minutes": checkup_data.get("duration_minutes"),
                 "type": checkup_data.get("type", "personal"),
@@ -136,13 +138,15 @@ class RecoveryCheckUpScheduleManager:
         Returns:
             list[dict]: A list of generated routine/check-up entries.
         """
+        zn = ZoneInfo("Europe/London")
         medicalRecordManager = MedicalRecordManager(self.user_id)
         history_data = medicalRecordManager.load_record()
         if not history_data:
             print("No medical history found to create checkup tracker.")
             return []
         surgery_date_str = history_data.get("surgery_date", None)
-        surgery_date = datetime.strptime(surgery_date_str, "%Y-%m-%d") if surgery_date_str else datetime.now()
+        now = datetime.now(zn)
+        surgery_date = datetime.strptime(surgery_date_str, "%Y-%m-%d").replace(tzinfo=zn) if surgery_date_str else now
         chat = GroqChat()
         routine_items = history_data.get("post_surgery_recommendations", {}).get("at_home", [])
         routine_text = "\n".join(routine_items) if routine_items else ""
@@ -234,7 +238,8 @@ class RecoveryCheckUpScheduleManager:
         Returns:
             list[str]: List of upcoming routines formatted as readable strings.
         """
-        now = datetime.now()
+        zn = ZoneInfo("Europe/London")
+        now = datetime.now(zn)
         start = now - timedelta(minutes=window_minutes)
         end = now + timedelta(minutes=window_minutes)
         tracker = self.load_tracker()
@@ -245,7 +250,7 @@ class RecoveryCheckUpScheduleManager:
                 continue
             dt_str = f"{task['date']} {task['time']}"
             try:
-                dt = datetime.strptime(dt_str, "%Y-%m-%d %H:%M")
+                dt = datetime.strptime(dt_str, "%Y-%m-%d %H:%M").replace(tzinfo=zn)
                 if start <= dt <= end:
                     duration_info = f" ({task['duration_minutes']} min)" if task.get("duration_minutes") else ""
                     upcoming.append(f"- 📝 {task['activity']}{duration_info} a las {task['time']}")
@@ -265,7 +270,8 @@ class RecoveryCheckUpScheduleManager:
         tracker = self.load_tracker()
         if not tracker:
             return None, None
-        now = datetime.now()
+        zn = ZoneInfo("Europe/London")
+        now = datetime.now(zn)
         today_str = now.strftime("%Y-%m-%d")
         # Filter only today's tasks ± 1 hours
         tasks_today = []
@@ -273,7 +279,7 @@ class RecoveryCheckUpScheduleManager:
             if entry.get("date") != today_str:
                 continue
             try:
-                task_time = datetime.strptime(f"{entry['date']} {entry['time']}", "%Y-%m-%d %H:%M")
+                task_time = datetime.strptime(f"{entry['date']} {entry['time']}", "%Y-%m-%d %H:%M").replace(tzinfo=zn)
             except:
                 continue
             if abs((task_time - now).total_seconds()) <= 1800:  # 1 horas

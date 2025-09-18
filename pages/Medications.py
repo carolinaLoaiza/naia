@@ -1,3 +1,4 @@
+from zoneinfo import ZoneInfo
 import streamlit as st
 import json
 import os
@@ -31,8 +32,8 @@ if not medication_tracker:
 # df = pd.DataFrame(medication_tracker)
 df = pd.DataFrame(medication_tracker)
 df["datetime"] = pd.to_datetime(df["date"] + " " + df["time"])
-
-today = datetime.now().date()
+zn = ZoneInfo("Europe/London")
+today = datetime.now(zn).date()
 
 # Separate past and current/future data
 
