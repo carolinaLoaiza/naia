@@ -1,5 +1,5 @@
 import base64
-import datetime
+from datetime import datetime
 import random
 from zoneinfo import ZoneInfo
 import streamlit as st
