@@ -186,7 +186,7 @@ def handle_crud_reminder (state, all_reminders):
                     for time_str in preferred_times:
                         reminder_dt = datetime.strptime(
                             f"{dateTo.strftime('%Y-%m-%d')} {time_str}", "%Y-%m-%d %H:%M"
-                        ).replace(tz)                        
+                        ).replace(tzinfo=tz)                        
                         if reminder_dt <= now:
                             continue
                         new_checkup = {
@@ -207,7 +207,7 @@ def handle_crud_reminder (state, all_reminders):
                         time_str = f"{9 + j * 5:02d}:00"  # Ej: 09:00, 14:00, 19:00...
                         reminder_dt = datetime.strptime(
                             f"{dateTo.strftime('%Y-%m-%d')} {time_str}", "%Y-%m-%d %H:%M"
-                        ).replace(tz)                        
+                        ).replace(tzinfo=tz)
                         if reminder_dt <= now:
                             continue
                         new_checkup = {
