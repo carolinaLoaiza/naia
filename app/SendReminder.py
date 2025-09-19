@@ -99,7 +99,7 @@ def get_upcoming_appointments(username):
             continue
         dt_str = f"{appointment['date']} {appointment['time']}"
         try:
-            dt = datetime.strptime(dt_str, "%Y-%m-%d %H:%M").replace(tz)
+            dt = datetime.strptime(dt_str, "%Y-%m-%d %H:%M").replace(tzinfo=tz)
             if start <= dt <= end:
                 upcoming.append(
                     f"{patient_name}, Reminder: {appointment['department']} at {appointment['location']} "
